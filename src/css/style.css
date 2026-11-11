@@ -1,0 +1,317 @@
+
+/* ==============================
+   1. VARIABLES ET THEMES
+============================== */
+
+:root {
+    --primary: #6c63ff;
+    --primary-hover: #554be8;
+
+    --background: #f8f9fc;
+    --surface: #ffffff;
+    --text: #202336;
+    --text-secondary: #6b7280;
+
+    --border: #e5e7eb;
+
+    --shadow: 0 10px 35px rgba(0, 0, 0, 0.06);
+}
+
+body.dark-theme {
+    --background: #111827;
+    --surface: #1f2937;
+    --text: #f9fafb;
+    --text-secondary: #9ca3af;
+    --border: #374151;
+
+    --shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+}
+
+/* ==============================
+   2. RESET
+============================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: var(--background);
+    color: var(--text);
+    transition: background 0.3s, color 0.3s;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+.container {
+    width: 90%;
+    max-width: 1150px;
+    margin: auto;
+}
+
+/* ==============================
+   3. NAVIGATION
+============================== */
+
+.header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navbar {
+    min-height: 75px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    font-size: 27px;
+    font-weight: bold;
+}
+
+.logo span {
+    color: var(--primary);
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.nav-menu a {
+    color: var(--text-secondary);
+    font-size: 14px;
+    transition: color 0.3s;
+}
+
+.nav-menu a:hover {
+    color: var(--primary);
+}
+
+.nav-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.nav-actions button {
+    background: var(--background);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* ==============================
+   4. ACCUEIL
+============================== */
+
+.hero {
+    min-height: 85vh;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 50px;
+}
+
+.hero-content {
+    max-width: 650px;
+}
+
+.hero-subtitle {
+    color: var(--primary);
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.hero-content h1 {
+    font-size: clamp(35px, 5vw, 58px);
+    line-height: 1.2;
+    margin-bottom: 15px;
+}
+
+.hero-content h1 span {
+    color: var(--primary);
+}
+
+.hero-content h2 {
+    font-size: 26px;
+    margin-bottom: 20px;
+}
+
+.hero-description {
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 1.8;
+    margin-bottom: 30px;
+}
+
+.hero-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.btn {
+    padding: 13px 22px;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-3px);
+}
+
+.btn-secondary {
+    border: 1px solid var(--primary);
+    color: var(--primary);
+}
+
+.btn-secondary:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-3px);
+}
+
+/* ==============================
+   5. IMAGE
+============================== */
+
+.hero-image {
+    width: 300px;
+    height: 300px;
+    min-width: 300px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6c63ff, #a78bfa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow);
+}
+
+.image-placeholder {
+    width: 270px;
+    height: 270px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 65px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* ==============================
+   6. SECTIONS
+============================== */
+
+section:not(.hero) {
+    padding-top: 70px;
+    padding-bottom: 70px;
+    border-top: 1px solid var(--border);
+}
+
+section:not(.hero) h2 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: var(--primary);
+}
+
+/* ==============================
+   7. RESPONSIVE
+============================== */
+
+@media (max-width: 850px) {
+
+    .navbar {
+        flex-wrap: wrap;
+        padding: 15px 0;
+        gap: 15px;
+    }
+
+    .nav-menu {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .hero {
+        flex-direction: column-reverse;
+        justify-content: center;
+        text-align: center;
+        padding-top: 50px;
+        padding-bottom: 50px;
+    }
+
+    .hero-image {
+        width: 220px;
+        height: 220px;
+        min-width: 220px;
+    }
+
+    .image-placeholder {
+        width: 195px;
+        height: 195px;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .hero-content h1 {
+        font-size: 34px;
+    }
+
+    .hero-content h2 {
+        font-size: 21px;
+    }
+
+    .nav-menu a {
+        font-size: 12px;
+    }
+
+    .hero-image {
+        width: 180px;
+        height: 180px;
+        min-width: 180px;
+    }
+
+    .image-placeholder {
+        width: 155px;
+        height: 155px;
+        font-size: 45px;
+    }
+}
