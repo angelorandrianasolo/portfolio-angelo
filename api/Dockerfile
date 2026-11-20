@@ -17,6 +17,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY api/ .
 
+# Certificat racine Avast (Web/Mail Shield) : ce poste intercepte le TLS
+# sortant, sans cette racine le conteneur refuse la connexion SMTP et aucun
+# e-mail ne peut partir. Fichier public, propre a cette machine.
+RUN if [ -f certs/avast-root.pem ]; then \
+        cp certs/avast-root.pem /usr/local/share/ca-certificates/avast-root.crt \
+        && update-ca-certificates; \
+    fi
+
 # Répertoires de données persistants (montés en volume dans compose).
 RUN mkdir -p data media staticfiles
 
