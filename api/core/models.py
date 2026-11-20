@@ -149,6 +149,9 @@ class Profile(models.Model):
     cv_filename = models.CharField(
         "Nom affiche du CV", max_length=160, blank=True, default="CV"
     )
+    contact_email = models.EmailField(
+        "E-mail recepteur des messages", max_length=254, blank=True, default=""
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -170,6 +173,7 @@ class Profile(models.Model):
             "has_cv": bool(self.cv),
             "cv_url": self.cv.url if self.cv else None,
             "cv_filename": self.cv_filename or "CV",
+            "contact_email": self.contact_email,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 

@@ -563,6 +563,13 @@ async function loadMessages() {
             status.hidden = false;
         }
 
+        // Adresse de reception : pre-remplie avec l'adresse effective
+        // (saisie dans ce panneau, sinon celle du .env).
+        const recipientField = $("#recipient-input");
+        if (recipientField && document.activeElement !== recipientField) {
+            recipientField.value = data.recipient || "";
+        }
+
         const list = $("#message-list");
         const empty = $("#messages-empty");
 
@@ -624,6 +631,64 @@ $("#message-list").addEventListener("click", async event => {
 
 $("#messages-limit").addEventListener("change", loadMessages);
 $("#refresh-messages").addEventListener("click", loadMessages);
+
+// Adresse qui recoit les messages (modifiable sans toucher au code).
+$("#recipient-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    clearMessages(["#recipient-error", "#recipient-ok"]);
+
+    const field = $("#recipient-input");
+    const value = field.value.trim();
+
+    if (!value) {
+        showError(
+            "#recipient-error",
+            "Saisissez une adresse, ou utilisez « Revenir à l'adresse .env »."
+        );
+        field.focus();
+        return;
+    }
+
+    const button = $("#recipient-save");
+    const label = button.textContent;
+    button.disabled = true;
+    button.textContent = "Enregistrement…";
+
+    try {
+        await api("/api/admin/profile/", {
+            method: "PATCH",
+            body: { contact_email: value }
+        });
+        showError("#recipient-ok", "Destinataire enregistré : " + value + ".");
+        toast("Destinataire mis à jour.", "ok");
+        await loadMessages();
+    } catch (error) {
+        showError("#recipient-error", error.message);
+    } finally {
+        button.disabled = false;
+        button.textContent = label;
+    }
+});
+
+$("#recipient-reset").addEventListener("click", async () => {
+    clearMessages(["#recipient-error", "#recipient-ok"]);
+
+    const button = $("#recipient-reset");
+    button.disabled = true;
+
+    try {
+        await api("/api/admin/profile/", {
+            method: "PATCH",
+            body: { contact_email: "" }
+        });
+        toast("Adresse du .env rétablie.", "ok");
+        await loadMessages();
+    } catch (error) {
+        showError("#recipient-error", error.message);
+    } finally {
+        button.disabled = false;
+    }
+});
 
 
 // ---------------------------------------------------------

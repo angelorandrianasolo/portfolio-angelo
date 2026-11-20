@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="css/admin.css?v=20261120a">
+    <link rel="stylesheet" href="css/admin.css?v=20261120g">
 
     <script>
         (function () {
@@ -434,6 +434,39 @@
                     </div>
                 </div>
 
+                <div class="card">
+                    <div class="card-head">
+                        <h3>Destinataire des messages</h3>
+                        <span class="card-hint">Recevoir les nouveaux messages
+                            dans votre boîte mail</span>
+                    </div>
+
+                    <form id="recipient-form" class="stack-form">
+
+                        <label class="field">
+                            <span>Adresse qui reçoit les messages</span>
+                            <input type="email" id="recipient-input"
+                                   placeholder="vous@exemple.com"
+                                   autocomplete="email" maxlength="254">
+                        </label>
+
+                        <p class="form-error" id="recipient-error" role="alert" hidden></p>
+                        <p class="form-ok" id="recipient-ok" role="status" hidden></p>
+
+                        <div class="btn-row">
+                            <button type="submit" class="btn btn-primary btn-sm"
+                                    id="recipient-save">
+                                Enregistrer
+                            </button>
+                            <button type="button" class="btn btn-ghost btn-sm"
+                                    id="recipient-reset">
+                                Revenir à l'adresse .env
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
                 <div class="message-list" id="message-list">
                     <p class="table-empty">Chargement…</p>
                 </div>
@@ -700,6 +733,6 @@
 <!-- Bandeau de notifications -->
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="js/admin.js?v=20261120a"></script>
+<script src="js/admin.js?v=20261120g"></script>
 </body>
 </html>

@@ -15,7 +15,9 @@ from urllib import request as urlrequest
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
+from django.core.validators import validate_email
 from django.db.models import Count
 from django.db.models.functions import TruncDate
 from django.http import JsonResponse
@@ -619,9 +621,26 @@ def _validation_message(exc) -> str:
 
 
 @admin_required
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "PATCH"])
 def admin_profile(request):
-    return JsonResponse(Profile.get().to_dict())
+    profile = Profile.get()
+
+    if request.method == "PATCH":
+        payload = json_body(request)
+        if "contact_email" not in payload:
+            return bad_request("Champ contact_email attendu.")
+
+        value = str(payload.get("contact_email") or "").strip()
+        if value:
+            try:
+                validate_email(value)
+            except ValidationError:
+                return bad_request("Adresse e-mail invalide.")
+
+        profile.contact_email = value
+        profile.save(update_fields=["contact_email", "updated_at"])
+
+    return JsonResponse(profile.to_dict())
 
 
 @admin_required
@@ -772,6 +791,16 @@ def admin_account(request):
 # ---------------------------------------------------------------------------
 
 
+def _contact_recipient() -> str:
+    """Destinataire des e-mails de contact.
+
+    Priorite a l'adresse saisie dans le back-office (Profile.contact_email),
+    sinon repli sur la variable CONTACT_RECIPIENT du fichier .env.
+    """
+    custom = (Profile.get().contact_email or "").strip()
+    return custom or settings.CONTACT_RECIPIENT
+
+
 @require_http_methods(["POST"])
 def contact_create(request):
     """Recoit un message du formulaire public.
@@ -842,7 +871,7 @@ def contact_create(request):
                 subject or f"Nouveau message de {name}",
                 body,
                 settings.DEFAULT_FROM_EMAIL,
-                [settings.CONTACT_RECIPIENT],
+                [_contact_recipient()],
                 fail_silently=False,
             )
             email_sent = True
@@ -894,7 +923,7 @@ def admin_messages(request):
                 and bool(settings.EMAIL_HOST_USER)
                 and bool(settings.EMAIL_HOST_PASSWORD)
             ),
-            "recipient": settings.CONTACT_RECIPIENT,
+            "recipient": _contact_recipient(),
             "results": [m.to_dict() for m in results],
         }
     )
