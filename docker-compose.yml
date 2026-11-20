@@ -1,0 +1,90 @@
+# =========================================================
+# Portfolio Angelo — site public + API REST Django
+#
+#   docker compose up --build
+#   → http://localhost:8080          site public
+#   → http://localhost:8080/admin.html   back-office
+#   → http://localhost:8080/health   healthcheck
+#
+# Identifiants : variables ADMIN_USERNAME / ADMIN_PASSWORD
+# (fichier .env à la racine, voir .env.example).
+# =========================================================
+
+services:
+
+  # ---------------------------------------------------------
+  # API REST Django (Gunicorn)
+  # ---------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: angelo-api
+    environment:
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-0}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-*}
+      # Clé secrète de Django : obligatoire en production.
+      # Générer avec :
+      #   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key(50))"
+      # Sans elle, Django refuse de démarrer (voir api/config/settings.py).
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-angelo}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      GITHUB_USERNAME: ${GITHUB_USERNAME:-angelorandrianasolo}
+      GITHUB_CACHE_SECONDS: ${GITHUB_CACHE_SECONDS:-900}
+      MAX_UPLOAD_SIZE: ${MAX_UPLOAD_SIZE:-20971520}
+      # Derrière Nginx, HTTPS est géré par le proxy :
+      # passez ces deux valeurs à 1 en production chiffrée.
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-0}
+      CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE:-0}
+      # --- Formulaire de contact (envoi d'email) ---
+      # Par défaut : backend « console » (l'email est écrit dans les logs,
+      # rien n'est envoyé). Pour recevoir les messages dans votre boîte
+      # mail, voir la section « Formulaire de contact » du README.
+      EMAIL_BACKEND: ${EMAIL_BACKEND:-django.core.mail.backends.console.EmailBackend}
+      EMAIL_HOST: ${EMAIL_HOST:-smtp.gmail.com}
+      EMAIL_PORT: ${EMAIL_PORT:-587}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+      EMAIL_USE_TLS: ${EMAIL_USE_TLS:-1}
+      EMAIL_TIMEOUT: ${EMAIL_TIMEOUT:-15}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-}
+      CONTACT_RECIPIENT: ${CONTACT_RECIPIENT:-angelorandrianasolo47@gmail.com}
+      CONTACT_MAX_PER_HOUR: ${CONTACT_MAX_PER_HOUR:-5}
+    volumes:
+      - api_data:/app/data
+      - media_data:/app/media
+    expose:
+      - "8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------
+  # Site public + reverse proxy /api/ et /media/
+  # ---------------------------------------------------------
+  web:
+    build: .
+    container_name: angelo-portfolio
+    ports:
+      - "${PORT:-8080}:80"
+    volumes:
+      - media_data:/media:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  api_data:
+    name: angelo_api_data
+  media_data:
+    name: angelo_media_data

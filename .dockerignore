@@ -1,5 +1,27 @@
+# ---------------------------------------------------------
+# Exclu des contextes de build Docker
+# ---------------------------------------------------------
 .git
 .gitignore
-.vscode
+
+**/__pycache__
+**/*.pyc
+**/*.pyo
+
+# Données et médias persistants (montés en volume)
+api/data
+api/media
+api/staticfiles
+api/Dockerfile
+
+# Secrets
 .env
-README.md
+.env.*
+!.env.example
+
+# Documentation, développement et tests
+*.md
+tools/
+tests/
+.vscode/
+.idea/

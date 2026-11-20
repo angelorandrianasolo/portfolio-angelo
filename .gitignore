@@ -1,17 +1,43 @@
-# IDE
-.vscode/
-.idea/
+# ---------------------------------------------------------
+# Python
+# ---------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
 
-# Windows
-Thumbs.db
-.DS_Store
+# ---------------------------------------------------------
+# Django — données persistantes et fichiers téléversés
+# ---------------------------------------------------------
+api/data/*
+!api/data/.gitkeep
 
-# Environnement
+api/media/*
+!api/media/.gitkeep
+
+api/staticfiles/
+*.sqlite3
+
+# ---------------------------------------------------------
+# Secrets (jamais versionnés)
+# ---------------------------------------------------------
 .env
-.env.local
+.env.*
+!.env.example
 
-# Dépendances
-node_modules/
-
-# Logs
+# ---------------------------------------------------------
+# Système / éditeurs
+# ---------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
 *.log
+
+# ---------------------------------------------------------
+# Docker
+# ---------------------------------------------------------
+docker-compose.override.yml
