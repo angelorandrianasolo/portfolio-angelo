@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Ajoute ton URL réelle ici une fois le domaine déployé :
+# Sitemap: https://ton-domaine.com/sitemap.xml
