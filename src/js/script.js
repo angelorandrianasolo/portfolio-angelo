@@ -141,6 +141,11 @@ const translations = {
         "projects.visit": "Visiter le site",
         "projects.code": "Voir le code",
         "projects.featured": "En vedette",
+        "gallery.open": "Voir les photos du projet",
+        "gallery.close": "Fermer la galerie",
+        "gallery.prev": "Photo précédente",
+        "gallery.next": "Photo suivante",
+        "gallery.count": "photos",
 
         "github.kicker": "GitHub",
         "github.title": "Ce que je pousse",
@@ -298,6 +303,11 @@ const translations = {
         "projects.visit": "Visit site",
         "projects.code": "View code",
         "projects.featured": "Featured",
+        "gallery.open": "View project photos",
+        "gallery.close": "Close gallery",
+        "gallery.prev": "Previous photo",
+        "gallery.next": "Next photo",
+        "gallery.count": "photos",
 
         "github.kicker": "GitHub",
         "github.title": "What I push",
@@ -695,8 +705,22 @@ if (yearElement) {
 // 11. RENDU DES PROJETS
 // ========================================
 
+function projectGallery(project) {
+    const urls = [];
+    const cover = safeUrl(project.image);
+    if (cover) urls.push(cover);
+
+    const photos = Array.isArray(project.photos) ? project.photos : [];
+    photos.forEach(photo => {
+        const url = photo && safeUrl(photo.url);
+        if (url && !urls.includes(url)) urls.push(url);
+    });
+    return urls;
+}
+
 function projectCover(project, index) {
-    const image = safeUrl(project.image);
+    const gallery = projectGallery(project);
+    const image = gallery[0] || null;
     const category = project.category
         ? `<span class="project-category">${escapeHtml(project.category)}</span>`
         : "";
@@ -709,11 +733,21 @@ function projectCover(project, index) {
     const picture = image
         ? `<img src="${escapeHtml(image)}" alt="" loading="lazy" decoding="async">`
         : `<span class="project-icon" aria-hidden="true">${escapeHtml(project.icon || "🚀")}</span>`;
+    const badge = gallery.length > 1
+        ? `<span class="project-gallery-badge">${gallery.length} ${escapeHtml(t("gallery.count"))}</span>`
+        : "";
+    const interactive = gallery.length > 1;
+    const coverAttrs = interactive
+        ? `role="button" tabindex="0"
+           data-gallery="${escapeHtml(gallery.join("|"))}"
+           aria-label="${escapeHtml(t("gallery.open"))}"`
+        : `aria-hidden="true"`;
 
     return `
-        <div class="project-cover cover-${index % 6}" aria-hidden="true">
+        <div class="project-cover cover-${index % 6}${interactive ? " has-gallery" : ""}" ${coverAttrs}>
             ${picture}
             <span class="project-cover-grid"></span>
+            ${badge}
             ${topLine}
         </div>`;
 }
@@ -777,6 +811,112 @@ function stateBlock(titleKey, messageKey) {
             ${escapeHtml(t(messageKey))}
         </p>`;
 }
+
+
+// ========================================
+// 11bis. GALERIE DE PHOTOS DES PROJETS
+// ========================================
+
+const galleryState = { urls: [], index: 0, root: null };
+
+function galleryLabels() {
+    const root = galleryState.root;
+    if (!root) return;
+    root.querySelector(".lightbox-close")
+        .setAttribute("aria-label", t("gallery.close"));
+    root.querySelector(".lightbox-prev")
+        .setAttribute("aria-label", t("gallery.prev"));
+    root.querySelector(".lightbox-next")
+        .setAttribute("aria-label", t("gallery.next"));
+}
+
+function ensureGalleryRoot() {
+    if (galleryState.root) return galleryState.root;
+
+    const root = document.createElement("div");
+    root.className = "lightbox";
+    root.hidden = true;
+    root.innerHTML = `
+        <button type="button" class="lightbox-close" aria-label="Fermer">&times;</button>
+        <button type="button" class="lightbox-prev" aria-label="Precedente">&#10094;</button>
+        <img class="lightbox-img" alt="">
+        <button type="button" class="lightbox-next" aria-label="Suivante">&#10095;</button>
+        <span class="lightbox-counter" aria-live="polite"></span>`;
+    document.body.appendChild(root);
+
+    root.querySelector(".lightbox-close")
+        .addEventListener("click", closeGallery);
+    root.querySelector(".lightbox-prev")
+        .addEventListener("click", () => stepGallery(-1));
+    root.querySelector(".lightbox-next")
+        .addEventListener("click", () => stepGallery(1));
+    root.addEventListener("click", event => {
+        if (event.target === root) closeGallery();
+    });
+
+    galleryState.root = root;
+    return root;
+}
+
+function showGallerySlide() {
+    const root = galleryState.root;
+    if (!root) return;
+    root.querySelector(".lightbox-img").src =
+        galleryState.urls[galleryState.index] || "";
+    root.querySelector(".lightbox-counter").textContent =
+        (galleryState.index + 1) + " / " + galleryState.urls.length;
+}
+
+function openGallery(urls, index) {
+    galleryState.urls = urls;
+    galleryState.index = index;
+    ensureGalleryRoot();
+    galleryLabels();
+    galleryState.root.hidden = false;
+    document.body.style.overflow = "hidden";
+    showGallerySlide();
+    galleryState.root.querySelector(".lightbox-close").focus();
+}
+
+function stepGallery(delta) {
+    const count = galleryState.urls.length;
+    if (!count) return;
+    galleryState.index = (galleryState.index + delta + count) % count;
+    showGallerySlide();
+}
+
+function closeGallery() {
+    if (!galleryState.root) return;
+    galleryState.root.hidden = true;
+    document.body.style.overflow = "";
+}
+
+if (projectsGrid) {
+    const openGalleryFromCover = cover => {
+        const urls = (cover.dataset.gallery || "").split("|").filter(Boolean);
+        if (urls.length) openGallery(urls, 0);
+    };
+
+    projectsGrid.addEventListener("click", event => {
+        const cover = event.target.closest(".project-cover.has-gallery");
+        if (cover) openGalleryFromCover(cover);
+    });
+
+    projectsGrid.addEventListener("keydown", event => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        const cover = event.target.closest(".project-cover.has-gallery");
+        if (!cover) return;
+        event.preventDefault();
+        openGalleryFromCover(cover);
+    });
+}
+
+document.addEventListener("keydown", event => {
+    if (!galleryState.root || galleryState.root.hidden) return;
+    if (event.key === "Escape") closeGallery();
+    if (event.key === "ArrowLeft") stepGallery(-1);
+    if (event.key === "ArrowRight") stepGallery(1);
+});
 
 async function loadProjects() {
     if (!projectsGrid) return;

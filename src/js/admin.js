@@ -216,6 +216,13 @@ const ADMIN_I18N = {
         "modal.imageShort": "Visuel",
         "modal.mockup": "Maquette (image)",
         "modal.mockupShort": "Maquette",
+        "modal.photos": "Photos du projet (plusieurs)",
+        "modal.photosHint": "Sélectionnez plusieurs images d'un coup (JPG, PNG, WEBP, GIF) — elles s'ajoutent directement à la galerie.",
+        "modal.photoDelete": "Supprimer cette photo",
+        "modal.photosAdded": "Photos ajoutées à la galerie",
+        "modal.photosPending": "Photos en attente : elles seront ajoutées à la création du projet.",
+        "modal.photoDeleted": "Photo supprimée",
+        "modal.photoError": "Galerie : opération impossible",
         "modal.published": "Publié sur le site",
         "modal.featured": "Mettre en vedette"
     },
@@ -426,6 +433,13 @@ const ADMIN_I18N = {
         "modal.imageShort": "Image",
         "modal.mockup": "Mockup (image)",
         "modal.mockupShort": "Mockup",
+        "modal.photos": "Project photos (multiple)",
+        "modal.photosHint": "Pick several images at once (JPG, PNG, WEBP, GIF) — they are added to the gallery right away.",
+        "modal.photoDelete": "Delete this photo",
+        "modal.photosAdded": "Photos added to the gallery",
+        "modal.photosPending": "Photos pending: they will be added when the project is created.",
+        "modal.photoDeleted": "Photo deleted",
+        "modal.photoError": "Gallery: operation failed",
         "modal.published": "Published on the site",
         "modal.featured": "Feature on homepage"
     }
@@ -1352,7 +1366,9 @@ async function loadProjects() {
         }
 
         container.innerHTML = projectsCache.map((project, index) => {
-            const image = safeUrl(project.image);
+            const firstPhoto = Array.isArray(project.photos) && project.photos.length
+                ? project.photos[0].url : null;
+            const image = safeUrl(project.image) || safeUrl(firstPhoto);
             const thumb = image
                 ? `<img src="${escapeHtml(image)}" alt="">`
                 : escapeHtml(project.icon || "🚀");
@@ -1479,6 +1495,8 @@ $("#project-list").addEventListener("click", async event => {
 const modal = $("#project-modal");
 const projectForm = $("#project-form");
 let lastFocused = null;
+let modalPhotos = [];          // photos deja enregistrees [{id, url}]
+let pendingPhotoFiles = [];    // fichiers choisis avant creation du projet
 
 function openProjectModal(project) {
     lastFocused = document.activeElement;
@@ -1527,6 +1545,11 @@ function openProjectModal(project) {
     thumbs.innerHTML = items.join("");
     thumbs.hidden = items.length === 0;
 
+    // Galerie multi-photos
+    modalPhotos = project ? (project.photos || []) : [];
+    pendingPhotoFiles = [];
+    renderPhotosGrid();
+
     modal.hidden = false;
     document.body.style.overflow = "hidden";
     $("#p-title").focus();
@@ -1537,6 +1560,107 @@ function closeProjectModal() {
     document.body.style.overflow = "";
     if (lastFocused && lastFocused.focus) lastFocused.focus();
 }
+
+function renderPhotosGrid() {
+    const grid = $("#p-photos-grid");
+    if (!grid) return;
+
+    const items = [];
+
+    modalPhotos.forEach(photo => {
+        const url = safeUrl(photo.url);
+        if (!url) return;
+        items.push(`
+            <span class="photo-item">
+                <img src="${escapeHtml(url)}" alt="">
+                <button type="button" class="photo-remove"
+                        aria-label="${escapeHtml(t("modal.photoDelete"))}"
+                        data-remove-photo="${photo.id}">&times;</button>
+            </span>`);
+    });
+
+    pendingPhotoFiles.forEach((entry, index) => {
+        items.push(`
+            <span class="photo-item photo-item--pending">
+                <img src="${escapeHtml(entry.url)}" alt="">
+                <button type="button" class="photo-remove"
+                        aria-label="${escapeHtml(t("modal.photoDelete"))}"
+                        data-remove-pending="${index}">&times;</button>
+            </span>`);
+    });
+
+    grid.innerHTML = items.join("");
+    grid.hidden = items.length === 0;
+}
+
+async function uploadProjectPhotos(projectId, entries) {
+    // Un fichier par requete : le corps reste sous la limite Nginx (25 Mo).
+    for (const entry of entries) {
+        const form = new FormData();
+        form.append("photos", entry.file);
+        const response = await api(
+            "/api/admin/projects/" + projectId + "/photos/",
+            { method: "POST", body: form }
+        );
+        if (response.photos) modalPhotos = response.photos;
+    }
+    renderPhotosGrid();
+}
+
+$("#p-photos").addEventListener("change", async event => {
+    const chosen = Array.from(event.target.files || []).map(file => ({
+        file,
+        url: URL.createObjectURL(file),
+    }));
+    event.target.value = "";
+    if (!chosen.length) return;
+
+    const id = $("#p-id").value;
+
+    if (id) {
+        try {
+            await uploadProjectPhotos(id, chosen);
+            toast(t("modal.photosAdded"), "ok");
+        } catch (error) {
+            showError("#project-error", error.message);
+        }
+        return;
+    }
+
+    pendingPhotoFiles.push(...chosen);
+    renderPhotosGrid();
+    toast(t("modal.photosPending"), "ok");
+});
+
+$("#p-photos-grid").addEventListener("click", async event => {
+    const removeButton = event.target.closest("[data-remove-photo]");
+    const removePending = event.target.closest("[data-remove-pending]");
+
+    if (removeButton) {
+        const photoId = removeButton.getAttribute("data-remove-photo");
+        try {
+            const response = await api(
+                "/api/admin/projects/" + $("#p-id").value +
+                    "/photos/" + photoId + "/",
+                { method: "DELETE" }
+            );
+            if (response.photos) modalPhotos = response.photos;
+            renderPhotosGrid();
+            toast(t("modal.photoDeleted"), "ok");
+        } catch (error) {
+            showError("#project-error", error.message);
+        }
+        return;
+    }
+
+    if (removePending) {
+        const index = Number(removePending.getAttribute("data-remove-pending"));
+        const entry = pendingPhotoFiles[index];
+        if (entry) URL.revokeObjectURL(entry.url);
+        pendingPhotoFiles.splice(index, 1);
+        renderPhotosGrid();
+    }
+});
 
 $("#new-project-btn").addEventListener("click", () => openProjectModal(null));
 
@@ -1598,7 +1722,17 @@ projectForm.addEventListener("submit", async event => {
             ? "/api/admin/projects/" + id + "/"
             : "/api/admin/projects/";
 
-        await api(url, { method: "POST", body: form });
+        const saved = await api(url, { method: "POST", body: form });
+
+        // Photos choisies avant creation : envoyees des que l'id existe.
+        if (!id && saved && saved.id && pendingPhotoFiles.length) {
+            try {
+                await uploadProjectPhotos(saved.id, pendingPhotoFiles);
+                pendingPhotoFiles = [];
+            } catch (photoError) {
+                toast(t("modal.photoError") + " : " + photoError.message, "error");
+            }
+        }
 
         toast(id ? t("projects.updated") : t("projects.created"), "ok");
         closeProjectModal();
