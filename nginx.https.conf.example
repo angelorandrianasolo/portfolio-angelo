@@ -1,0 +1,155 @@
+# =========================================================
+# Nginx HTTPS — configuration de production (Let's Encrypt)
+#
+# CE FICHIER N'EST PAS CHARGÉ par défaut : c'est la version à utiliser
+# une fois un domaine réel pointé vers le serveur. Voir la section
+# « Sécurité → Passer en HTTPS » du README.
+#
+# Résumé de la procédure :
+#   1. Domaine (ex. angelo.dev) pointé vers le serveur
+#   2. Certificat obtenu via Certbot (mode webroot, voir README)
+#   3. Copier ce fichier sur nginx.conf :
+#        cp nginx.https.conf.example nginx.conf
+#      et remplacer « ton-domaine.com » par le domaine réel
+#   4. Monter les certificats dans docker-compose.yml :
+#        web:
+#          volumes:
+#            - ./certs:/etc/nginx/certs:ro
+#            - acme_data:/usr/share/nginx/html/.well-known:ro
+#   5. Puis : docker compose build web && docker compose up -d web
+#   6. Activer HSTS côté Django : SECURE_HSTS_SECONDS=31536000 dans .env
+#
+# Note conteneur non-root : Nginx tourne en utilisateur « nginx » (voir
+# Dockerfile). Le port 443 est « privilégié » : ajouter dans compose :
+#     web:
+#       cap_add: [NET_BIND_SERVICE]
+#   ou retirer la ligne `USER nginx` du Dockerfile pour ce déploiement.
+# =========================================================
+
+map $uri $csp_value {
+    default "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; upgrade-insecure-requests";
+}
+
+# --- HTTP : challenge ACME + redirection vers HTTPS --------------------
+server {
+    listen 80;
+    server_name ton-domaine.com;
+    server_tokens off;
+
+    # Challenge Certbot (écrit par Certbot via le volume acme_data)
+    location /.well-known/acme-challenge/ {
+        root /usr/share/nginx/html;
+    }
+
+    # Tout le reste part en HTTPS
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# --- HTTPS ------------------------------------------------------------
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ton-domaine.com;
+    server_tokens off;
+
+    root  /usr/share/nginx/html;
+    index index.html;
+
+    # Certificats Let's Encrypt (montés depuis ./certs via docker-compose)
+    ssl_certificate     /etc/nginx/certs/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_session_cache   shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    # --- Sécurité : HSTS (le navigateur n'utilisera plus jamais le HTTP)
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    gzip on;
+    gzip_comp_level 5;
+    gzip_min_length 256;
+    gzip_vary on;
+    gzip_types
+        text/plain
+        text/css
+        text/javascript
+        application/javascript
+        application/json
+        image/svg+xml
+        application/manifest+json;
+
+    location ^~ /api/ {
+        proxy_pass http://api:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $http_host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+        client_max_body_size 25m;
+    }
+
+    location = /health {
+        proxy_pass http://api:8000/health;
+        access_log off;
+    }
+
+    location ^~ /media/ {
+        alias /media/;
+        expires 7d;
+        access_log off;
+    }
+
+    location ~* \.(?:css|js|svg|png|jpe?g|webp|gif|ico|woff2?)$ {
+        add_header Cache-Control "no-cache, must-revalidate" always;
+        add_header Content-Security-Policy $csp_value always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        access_log off;
+        try_files $uri =404;
+    }
+
+    location ~* \.html$ {
+        add_header Cache-Control "no-cache, must-revalidate" always;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        add_header Content-Security-Policy $csp_value always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        try_files $uri =404;
+    }
+
+    location = /admin.html {
+        add_header Cache-Control "no-cache, must-revalidate" always;
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Content-Security-Policy $csp_value always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        try_files $uri =404;
+    }
+
+    location = /robots.txt {
+        try_files $uri =404;
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    add_header Content-Security-Policy $csp_value always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+}
