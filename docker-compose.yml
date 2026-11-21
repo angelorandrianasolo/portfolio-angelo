@@ -37,6 +37,13 @@ services:
       # passez ces deux valeurs à 1 en production chiffrée.
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-0}
       CSRF_COOKIE_SECURE: ${CSRF_COOKIE_SECURE:-0}
+      # HSTS : 0 en HTTP local ; passer à 31536000 une fois HTTPS actif.
+      SECURE_HSTS_SECONDS: ${SECURE_HSTS_SECONDS:-0}
+      # Anti force brute sur la connexion (tentatives / blocage).
+      LOGIN_MAX_ATTEMPTS: ${LOGIN_MAX_ATTEMPTS:-5}
+      LOGIN_BLOCK_MINUTES: ${LOGIN_BLOCK_MINUTES:-15}
+      # Déconnexion de l'admin après inactivité (secondes).
+      ADMIN_IDLE_SECONDS: ${ADMIN_IDLE_SECONDS:-1800}
       # --- Formulaire de contact (envoi d'email) ---
       # Par défaut : backend « console » (l'email est écrit dans les logs,
       # rien n'est envoyé). Pour recevoir les messages dans votre boîte
@@ -76,7 +83,9 @@ services:
     build: .
     container_name: angelo-portfolio
     ports:
-      - "${PORT:-8080}:80"
+      # Conteneur non-root : Nginx écoute sur 8080 en interne.
+      # HTTPS : ajouter cap_add: [NET_BIND_SERVICE] (voir nginx.https.conf.example).
+      - "${PORT:-8080}:8080"
     volumes:
       - media_data:/media:ro
     depends_on:

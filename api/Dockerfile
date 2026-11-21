@@ -26,7 +26,9 @@ RUN if [ -f certs/avast-root.pem ]; then \
     fi
 
 # Répertoires de données persistants (montés en volume dans compose).
-RUN mkdir -p data media staticfiles
+RUN mkdir -p data media staticfiles \
+    && useradd --uid 1001 --create-home --shell /usr/sbin/nologin appuser \
+    && chown -R appuser:appuser /app
 
 EXPOSE 8000
 
@@ -34,17 +36,23 @@ EXPOSE 8000
 # ensure_admin -> compte à partir de ADMIN_USERNAME / ADMIN_PASSWORD
 # seed_projects -> projets initiaux (idempotent)
 # gunicorn -> serveur de production
+#
+# L'entrée se fait en root uniquement pour appartenir les volumes (écrits
+# par une image précédente en root), puis setpriv redescend en « appuser » :
+# migrate et gunicorn tournent sans aucun privilège.
 CMD ["sh", "-c", "\
-    python manage.py migrate --noinput && \
-    python manage.py ensure_admin && \
-    python manage.py seed_projects && \
-    gunicorn config.wsgi:application \
-        --bind 0.0.0.0:8000 \
-        --workers 2 \
-        --threads 2 \
-        --timeout 60 \
-        --access-logfile - \
-        --error-logfile -"]
+    chown -R appuser:appuser /app/data /app/media && \
+    setpriv --reuid=appuser --regid=appuser --init-groups sh -c \"\
+python manage.py migrate --noinput && \
+python manage.py ensure_admin && \
+python manage.py seed_projects && \
+gunicorn config.wsgi:application \
+    --bind 0.0.0.0:8000 \
+    --workers 2 \
+    --threads 2 \
+    --timeout 60 \
+    --access-logfile - \
+    --error-logfile -\""]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
     CMD python -c "import urllib.request,sys; \

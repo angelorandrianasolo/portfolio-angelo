@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import re
+import time
 from datetime import timedelta
 from urllib import error as urlerror
 from urllib import request as urlrequest
@@ -85,14 +86,98 @@ def parse_payload(request) -> tuple:
 
 
 def client_ip(request) -> str | None:
+    # X-Real-IP est pose par Nginx (valeur reelle du client) : il prime sur
+    # X-Forwarded-For, que le navigateur peut inventer pour contourner le
+    # plafond anti-spam ou le blocage des tentatives de connexion.
+    real = request.META.get("HTTP_X_REAL_IP", "").strip()
+    if real:
+        return real[:45]
     forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
     if forwarded:
         return forwarded.split(",")[0].strip()[:45] or None
     return request.META.get("REMOTE_ADDR") or None
 
 
+def anonymize_ip(ip: str | None) -> str | None:
+    """IP stockee : derniers octets retires (RGPD — donnee personnelle).
+
+    L'IP reste partiellement visible pour comprendre l'origine d'un message
+    (« IP : 172.18.x.x ») et continue de servir de cle de plafonnement, mais
+    elle ne permet plus d'identifier une machine precise.
+    """
+    if not ip:
+        return ip
+    if ":" in ip:  # IPv6 : on garde le prefixe reseau (3 blocs)
+        groups = [g for g in ip.split(":") if g][:3]
+        return ":".join(groups) + "::" if groups else None
+    parts = ip.split(".")
+    if len(parts) == 4 and all(p.isdigit() for p in parts):
+        return f"{parts[0]}.{parts[1]}.x.x"
+    return ip
+
+
 def bad_request(message: str, status: int = 400) -> JsonResponse:
     return JsonResponse({"detail": message}, status=status)
+
+
+# ---------------------------------------------------------------------------
+# Anti force brute — connexion back-office
+# ---------------------------------------------------------------------------
+# Compteur d'echecs par IP dans le cache : au-delà de LOGIN_MAX_ATTEMPTS
+# tentatives echouees en LOGIN_BLOCK_MINUTES minutes, l'IP est bloquee et
+# chaque nouvelle tentative est journalisee.
+
+
+def _is_login_blocked(ip: str | None) -> bool:
+    if not ip or not settings.LOGIN_MAX_ATTEMPTS:
+        return False
+    window = settings.LOGIN_BLOCK_MINUTES * 60
+    now = time.time()
+    attempts = [
+        t for t in (cache.get(f"login-throttle:{ip}") or []) if now - t < window
+    ]
+    if attempts:
+        cache.set(f"login-throttle:{ip}", attempts, window)
+    return len(attempts) >= settings.LOGIN_MAX_ATTEMPTS
+
+
+def _record_login_failure(ip: str | None) -> int:
+    if not ip:
+        return 0
+    window = settings.LOGIN_BLOCK_MINUTES * 60
+    now = time.time()
+    attempts = [
+        t for t in (cache.get(f"login-throttle:{ip}") or []) if now - t < window
+    ]
+    attempts.append(now)
+    cache.set(f"login-throttle:{ip}", attempts, window)
+    return len(attempts)
+
+
+def _clear_login_failures(ip: str | None) -> None:
+    if ip:
+        cache.delete(f"login-throttle:{ip}")
+
+
+def _idle_expired(request) -> bool:
+    """Deconnexion automatique apres ADMIN_IDLE_SECONDS sans activite.
+
+    Retourne True si la session vient d'etre fermee. Pose aussi
+    l'horodatage d'activite, appele a chaque requete admin authentifiee.
+    """
+    if not request.user.is_authenticated:
+        return False
+    now = int(time.time())
+    last = request.session.get("admin_last_seen")
+    if last is None:
+        # Session anterieure a cette mise en place : on demarre le compteur.
+        request.session["admin_last_seen"] = now
+        return False
+    if now - int(last) > settings.ADMIN_IDLE_SECONDS:
+        logout(request)
+        return True
+    request.session["admin_last_seen"] = now
+    return False
 
 
 def admin_required(view_func):
@@ -102,6 +187,14 @@ def admin_required(view_func):
         if not request.user.is_authenticated:
             return JsonResponse(
                 {"detail": "Session expiree, reconnectez-vous."}, status=401
+            )
+        if _idle_expired(request):
+            return JsonResponse(
+                {
+                    "detail": "Session fermee apres inactivite, "
+                    "reconnectez-vous."
+                },
+                status=401,
             )
         return view_func(request, *args, **kwargs)
 
@@ -175,14 +268,46 @@ def login_view(request):
     if not username or not password:
         return bad_request("Identifiant et mot de passe requis.")
 
+    ip = client_ip(request)
+
+    # Blocage temporaire apres trop de tentatives echouees consecutives.
+    if _is_login_blocked(ip):
+        logger.warning(
+            "Connexion refusee : tentatives trop recentes (ip=%s, user=%s)",
+            anonymize_ip(ip) or "?",
+            username[:40],
+        )
+        return JsonResponse(
+            {
+                "detail": "Trop de tentatives. Reessayez dans quelques "
+                "minutes."
+            },
+            status=429,
+        )
+
     user = authenticate(request, username=username, password=password)
     if user is None:
         # Compte desactive ou mauvais mot de passe : meme message.
+        attempts = _record_login_failure(ip)
+        logger.warning(
+            "Echec de connexion %s/%s (ip=%s, user=%s)",
+            attempts,
+            settings.LOGIN_MAX_ATTEMPTS,
+            anonymize_ip(ip) or "?",
+            username[:40],
+        )
         return JsonResponse(
             {"detail": "Identifiants incorrects."}, status=401
         )
 
+    _clear_login_failures(ip)
+    logger.info(
+        "Connexion reussie (ip=%s, user=%s)",
+        anonymize_ip(ip) or "?",
+        user.username,
+    )
     login(request, user)
+    request.session["admin_last_seen"] = int(time.time())
     return JsonResponse({"username": user.username})
 
 
@@ -195,6 +320,8 @@ def logout_view(request):
 @require_http_methods(["GET"])
 def me_view(request):
     if not request.user.is_authenticated:
+        return JsonResponse({"authenticated": False, "username": None})
+    if _idle_expired(request):
         return JsonResponse({"authenticated": False, "username": None})
     return JsonResponse(
         {"authenticated": True, "username": request.user.username}
@@ -253,7 +380,7 @@ def visit_create(request):
     Visit.objects.create(
         path=str(fields.get("path") or "/")[:500],
         referrer=str(fields.get("referrer") or "")[:500],
-        ip=client_ip(request),
+        ip=anonymize_ip(client_ip(request)),
         user_agent=user_agent,
         country=str(fields.get("country") or "")[:120],
         is_bot=is_bot,
@@ -828,7 +955,9 @@ def contact_create(request):
     if len(message) > 5000:
         return bad_request("Le message est trop long (5000 caracteres maximum).")
 
-    ip = client_ip(request)
+    # IP anonymisee (RGPD) : elle sert de cle de plafonnement et reste
+    # lisible dans le back-office, sans identifier la machine precise.
+    ip = anonymize_ip(client_ip(request))
 
     # Anti-spam : plafond par IP sur la derniere heure.
     if ip and settings.CONTACT_MAX_PER_HOUR:

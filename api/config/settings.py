@@ -114,6 +114,42 @@ SESSION_COOKIE_AGE = 60 * 60 * 24 * 14          # 14 jours
 SESSION_SAVE_EVERY_REQUEST = False
 CSRF_COOKIE_AGE = 60 * 60 * 24 * 14
 
+# Cookies durcis.
+#  - SESSION_COOKIE_HTTPONLY : le cookie de session n'est jamais lisible en
+#    JavaScript, un script injecterait impossible de le voler.
+#  - SameSite=Lax : le navigateur n'envoie plus le cookie sur les requêtes
+#    transverses (anti-CSRF de premier niveau).
+#  - CSRF reste lisible par JS car le back-office lit `csrftoken` pour
+#    construire l'en-tête X-CSRFToken : c'est voulu et sans danger.
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# En-tetes de securite doublons cote Django (Nginx envoie aussi les siens :
+# si un jour Nginx est remplace, la protection reste).
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "SAMEORIGIN"
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# HSTS (Strict-Transport-Security) : sans effet en HTTP local ; passer
+# SECURE_HSTS_SECONDS=31536000 une fois HTTPS installe (voir README).
+SECURE_HSTS_SECONDS = int(os.environ.get("SECURE_HSTS_SECONDS", "0") or 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+
+# ---------------------------------------------------------------------------
+# Anti force brute — connexion back-office
+# ---------------------------------------------------------------------------
+# Nombre max de tentatives echouees par IP avant blocage temporaire.
+LOGIN_MAX_ATTEMPTS = int(os.environ.get("LOGIN_MAX_ATTEMPTS", "5") or 5)
+LOGIN_BLOCK_MINUTES = int(os.environ.get("LOGIN_BLOCK_MINUTES", "15") or 15)
+
+# ---------------------------------------------------------------------------
+# Deconnexion automatique par inactivite
+# ---------------------------------------------------------------------------
+# Une session admin ouverte puis oubliee (poste public, bureau partage)
+# est fermee apres ce delai sans activite.
+ADMIN_IDLE_SECONDS = int(os.environ.get("ADMIN_IDLE_SECONDS", "1800") or 1800)
+
 # ---------------------------------------------------------------------------
 # Uploads
 # ---------------------------------------------------------------------------
