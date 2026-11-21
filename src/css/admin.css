@@ -248,6 +248,17 @@ input, select, textarea { font-family: inherit; font-size: 0.95rem; }
 
 .login-back:hover { color: var(--brand-text); }
 
+/* Pied de l'ecran de connexion : retour au site + changement de langue */
+.login-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.login-foot .login-back { margin-top: 0; }
+
 /* ===================== FORMULAIRES ===================== */
 
 .field {

@@ -6,6 +6,513 @@
 "use strict";
 
 // ---------------------------------------------------------
+// 0. Internationalisation (fr / en)
+// ---------------------------------------------------------
+
+const ADMIN_I18N = {
+    fr: {
+        "meta.title": "Espace administration | Angelo Randrianasolo",
+        "meta.description": "Espace d'administration du portfolio d'Angelo Randrianasolo : visiteurs, téléchargements de CV, projets et photo de profil.",
+
+        "a11y.lang": "Changer de langue",
+        "a11y.sections": "Sections",
+        "a11y.theme": "Basculer le thème",
+        "a11y.themeDark": "Passer en mode sombre",
+        "a11y.themeLight": "Passer en mode clair",
+
+        "app.badge": "Administration",
+        "common.logout": "Se déconnecter",
+        "common.refresh": "Rafraîchir",
+        "common.save": "Enregistrer",
+        "common.saving": "Enregistrement…",
+        "common.cancel": "Annuler",
+        "common.delete": "Supprimer",
+        "common.edit": "Modifier",
+        "common.close": "Fermer",
+        "common.loading": "Chargement…",
+        "common.upload": "Téléverser",
+        "common.sending": "Envoi…",
+        "common.rows": "Nombre de lignes",
+        "common.showPw": "Afficher le mot de passe",
+        "common.hidePw": "Masquer le mot de passe",
+        "common.total": "{n} au total",
+        "common.and": " et ",
+        "common.errorStatus": "Erreur {status}",
+        "common.unexpected": "Erreur inattendue.",
+
+        "login.title": "Espace administration",
+        "login.sub": "Gérez vos projets, votre photo, votre CV et suivez vos visiteurs.",
+        "login.username": "Identifiant",
+        "login.password": "Mot de passe",
+        "login.submit": "Se connecter",
+        "login.connecting": "Connexion…",
+        "login.back": "← Retour au site",
+        "login.required": "Identifiant et mot de passe requis.",
+        "login.success": "Connexion réussie.",
+        "login.impossible": "Connexion impossible.",
+        "login.unexpected": "Réponse inattendue du serveur (connexion non confirmée).",
+        "login.formMissing": "Formulaire introuvable — rechargez la page (Ctrl+Maj+R).",
+        "login.apiDown": "Impossible de joindre l'API.",
+        "login.loggedOut": "Déconnecté.",
+
+        "diag.none": "aucun appel",
+        "diag.lastCall": "dernier appel",
+        "diag.csrf": "cookie CSRF",
+        "diag.yes": "lu",
+        "diag.no": "ABSENT",
+        "diag.checking": "vérification de session…",
+        "diag.noSession": "session absente",
+        "diag.apiDown": "API inaccessible",
+        "diag.connected": "CONNECTÉ",
+        "diag.failed": "ÉCHEC",
+        "diag.jsError": "Erreur JS : ",
+        "diag.networkError": "Erreur réseau : ",
+
+        "tab.overview": "Vue d'ensemble",
+        "tab.visitors": "Visiteurs",
+        "tab.cv": "CV",
+        "tab.messages": "Messages",
+        "tab.photo": "Photo de profil",
+        "tab.projects": "Projets",
+        "tab.account": "Compte",
+
+        "overview.kicker": "Statistiques",
+        "overview.title": "Vue d'ensemble",
+        "overview.kpiVisits": "Visites au total",
+        "overview.kpiToday": "Aujourd'hui",
+        "overview.kpiWeek": "7 derniers jours",
+        "overview.kpiMonth": "30 derniers jours",
+        "overview.kpiDownloads": "Téléchargements CV",
+        "overview.kpiProjects": "Projets publiés",
+        "overview.visitsCard": "Visites sur 30 jours",
+        "overview.visitsAria": "Histogramme des visites par jour",
+        "overview.visitsEmpty": "Aucune visite enregistrée pour l'instant.",
+        "overview.cvCard": "Téléchargements de CV sur 30 jours",
+        "overview.cvAria": "Histogramme des téléchargements de CV par jour",
+        "overview.cvEmpty": "Aucun téléchargement pour l'instant.",
+        "overview.topPages": "Pages les plus visitées",
+        "overview.noData": "Pas encore de données.",
+
+        "visits.kicker": "Journal",
+        "visits.title": "Visiteurs",
+        "visits.limit50": "50 dernières",
+        "visits.limit100": "100 dernières",
+        "visits.limit250": "250 dernières",
+        "visits.thDate": "Date",
+        "visits.thPage": "Page",
+        "visits.thOrigin": "Origine",
+        "visits.thBrowser": "Navigateur",
+        "visits.empty": "Aucune visite enregistrée.",
+        "visits.direct": "Direct",
+
+        "cv.kicker": "Document",
+        "cv.title": "Curriculum vitæ",
+        "cv.current": "Fichier actuel",
+        "cv.none": "Aucun CV téléversé.",
+        "cv.newFile": "Nouveau fichier (PDF, DOC, DOCX)",
+        "cv.delete": "Supprimer le CV",
+        "cv.downloads": "Téléchargements",
+        "cv.nobody": "Personne n'a encore téléchargé votre CV.",
+        "cv.updatedOn": "Mis à jour le {date} —",
+        "cv.open": "ouvrir",
+        "cv.unknownIp": "IP inconnue",
+        "cv.updated": "CV mis à jour.",
+        "cv.deleted": "CV supprimé.",
+        "cv.confirmDelete": "Supprimer définitivement le CV ?",
+
+        "photo.kicker": "Identité",
+        "photo.title": "Photo de profil",
+        "photo.hint": "Sans photo, vos initiales « AR » sont affichées dans la bannière d'accueil. Formats acceptés : JPG, PNG, WEBP, GIF — 20 Mo maximum.",
+        "photo.newPhoto": "Nouvelle photo",
+        "photo.update": "Mettre à jour la photo",
+        "photo.delete": "Supprimer la photo",
+        "photo.currentAlt": "Photo de profil actuelle",
+        "photo.updated": "Photo mise à jour.",
+        "photo.deleted": "Photo supprimée.",
+        "photo.confirmDelete": "Supprimer la photo de profil ?",
+
+        "projects.kicker": "Contenu",
+        "projects.title": "Projets",
+        "projects.new": "+ Nouveau projet",
+        "projects.newTitle": "Nouveau projet",
+        "projects.editTitle": "Modifier le projet",
+        "projects.empty": "Aucun projet. Créez votre premier projet avec « + Nouveau projet ».",
+        "projects.siteLink": "Site ↗",
+        "projects.codeLink": "Code ↗",
+        "projects.published": "Publié",
+        "projects.draft": "Brouillon",
+        "projects.featured": "Vedette",
+        "projects.noCategory": "Sans catégorie",
+        "projects.order": "ordre {n}",
+        "projects.unpublish": "Dépublier",
+        "projects.publish": "Publier",
+        "projects.unpublished": "Projet dépublié.",
+        "projects.publishedToast": "Projet publié.",
+        "projects.confirmDelete": "Supprimer définitivement « {title} » ?",
+        "projects.deleted": "Projet supprimé.",
+        "projects.titleRequired": "Le titre est obligatoire.",
+        "projects.updated": "Projet mis à jour.",
+        "projects.created": "Projet créé.",
+
+        "messages.kicker": "Boîte de réception",
+        "messages.title": "Messages reçus",
+        "messages.limit50": "50 derniers",
+        "messages.limit100": "100 derniers",
+        "messages.limit250": "250 derniers",
+        "messages.recipientTitle": "Destinataire des messages",
+        "messages.recipientHint": "Recevoir les nouveaux messages dans votre boîte mail",
+        "messages.recipientLabel": "Adresse qui reçoit les messages",
+        "messages.recipientReset": "Revenir à l'adresse .env",
+        "messages.empty": "Aucun message pour l'instant.",
+        "messages.sentTo": "Les nouveaux messages sont envoyés à {email}.",
+        "messages.notConfigured": "L'envoi d'email n'est pas configuré : les messages restent lisibles ici. Renseignez SMTP dans .env pour les recevoir dans votre boîte mail.",
+        "messages.emailSent": "Email envoyé",
+        "messages.emailNotSent": "Email non envoyé",
+        "messages.new": "Nouveau",
+        "messages.markRead": "Marquer lu",
+        "messages.markUnread": "Marquer non lu",
+        "messages.reply": "Répondre",
+        "messages.re": "Re",
+        "messages.defaultSubject": "Votre message",
+        "messages.confirmDelete": "Supprimer définitivement ce message ?",
+        "messages.deleted": "Message supprimé.",
+        "messages.recipientEmpty": "Saisissez une adresse, ou utilisez « Revenir à l'adresse .env ».",
+        "messages.recipientSaved": "Destinataire enregistré : {email}.",
+        "messages.recipientUpdated": "Destinataire mis à jour.",
+        "messages.recipientResetDone": "Adresse du .env rétablie.",
+
+        "account.kicker": "Sécurité",
+        "account.title": "Mon compte",
+        "account.credentials": "Identifiant et mot de passe",
+        "account.newUsername": "Nouvel identifiant",
+        "account.currentPassword": "Mot de passe actuel *",
+        "account.newPassword": "Nouveau mot de passe — 8 caractères minimum, laisser vide pour ne pas le changer",
+        "account.howTitle": "Comment ça marche",
+        "account.rule1": "Le <strong>mot de passe actuel</strong> est toujours demandé : une session ouverte ne suffit pas pour modifier le compte.",
+        "account.rule2": "Vous restez connecté après modification.",
+        "account.rule3": "Un identifiant déjà pris par un autre compte est refusé.",
+        "account.rule4": "Le nouveau mot de passe doit être différent de l'actuel et contenir au moins 8 caractères.",
+        "account.hint": "Ces identifiants servent uniquement à cet espace privé. Ils ne sont jamais affichés sur le site public.",
+        "account.needCurrentPassword": "Saisissez votre mot de passe actuel.",
+        "account.nothingToChange": "Rien à modifier : saisissez un nouvel identifiant et/ou un nouveau mot de passe.",
+        "account.labelUsername": "identifiant",
+        "account.labelPassword": "mot de passe",
+        "account.labelAccount": "compte",
+        "account.updated": "Mis à jour : {what}.",
+        "account.updatedToast": "Compte mis à jour.",
+
+        "modal.title": "Titre *",
+        "modal.category": "Catégorie",
+        "modal.icon": "Icône (emoji)",
+        "modal.order": "Ordre d'affichage",
+        "modal.summary": "Accroche — français",
+        "modal.summaryEn": "Accroche — anglais",
+        "modal.description": "Description — français",
+        "modal.descriptionEn": "Description — anglais",
+        "modal.technologies": "Technologies (séparées par des virgules)",
+        "modal.website": "Lien du projet",
+        "modal.repo": "Dépôt GitHub",
+        "modal.image": "Visuel (JPG, PNG, WEBP, GIF)",
+        "modal.imageShort": "Visuel",
+        "modal.mockup": "Maquette (image)",
+        "modal.mockupShort": "Maquette",
+        "modal.published": "Publié sur le site",
+        "modal.featured": "Mettre en vedette"
+    },
+
+    en: {
+        "meta.title": "Administration | Angelo Randrianasolo",
+        "meta.description": "Administration area of Angelo Randrianasolo's portfolio: visitors, CV downloads, projects and profile photo.",
+
+        "a11y.lang": "Change language",
+        "a11y.sections": "Sections",
+        "a11y.theme": "Toggle theme",
+        "a11y.themeDark": "Switch to dark mode",
+        "a11y.themeLight": "Switch to light mode",
+
+        "app.badge": "Administration",
+        "common.logout": "Sign out",
+        "common.refresh": "Refresh",
+        "common.save": "Save",
+        "common.saving": "Saving…",
+        "common.cancel": "Cancel",
+        "common.delete": "Delete",
+        "common.edit": "Edit",
+        "common.close": "Close",
+        "common.loading": "Loading…",
+        "common.upload": "Upload",
+        "common.sending": "Sending…",
+        "common.rows": "Rows per page",
+        "common.showPw": "Show password",
+        "common.hidePw": "Hide password",
+        "common.total": "{n} in total",
+        "common.and": " and ",
+        "common.errorStatus": "Error {status}",
+        "common.unexpected": "Unexpected error.",
+
+        "login.title": "Administration",
+        "login.sub": "Manage your projects, photo and CV, and keep track of your visitors.",
+        "login.username": "Username",
+        "login.password": "Password",
+        "login.submit": "Sign in",
+        "login.connecting": "Signing in…",
+        "login.back": "← Back to site",
+        "login.required": "Username and password required.",
+        "login.success": "Signed in successfully.",
+        "login.impossible": "Unable to sign in.",
+        "login.unexpected": "Unexpected server response (sign-in not confirmed).",
+        "login.formMissing": "Form not found — reload the page (Ctrl+Shift+R).",
+        "login.apiDown": "Cannot reach the API.",
+        "login.loggedOut": "Signed out.",
+
+        "diag.none": "no call",
+        "diag.lastCall": "last call",
+        "diag.csrf": "CSRF cookie",
+        "diag.yes": "read",
+        "diag.no": "MISSING",
+        "diag.checking": "checking session…",
+        "diag.noSession": "no session",
+        "diag.apiDown": "API unreachable",
+        "diag.connected": "CONNECTED",
+        "diag.failed": "FAILED",
+        "diag.jsError": "JS error: ",
+        "diag.networkError": "Network error: ",
+
+        "tab.overview": "Overview",
+        "tab.visitors": "Visitors",
+        "tab.cv": "CV",
+        "tab.messages": "Messages",
+        "tab.photo": "Profile photo",
+        "tab.projects": "Projects",
+        "tab.account": "Account",
+
+        "overview.kicker": "Statistics",
+        "overview.title": "Overview",
+        "overview.kpiVisits": "Total visits",
+        "overview.kpiToday": "Today",
+        "overview.kpiWeek": "Last 7 days",
+        "overview.kpiMonth": "Last 30 days",
+        "overview.kpiDownloads": "CV downloads",
+        "overview.kpiProjects": "Published projects",
+        "overview.visitsCard": "Visits over 30 days",
+        "overview.visitsAria": "Histogram of daily visits",
+        "overview.visitsEmpty": "No visits recorded yet.",
+        "overview.cvCard": "CV downloads over 30 days",
+        "overview.cvAria": "Histogram of daily CV downloads",
+        "overview.cvEmpty": "No downloads yet.",
+        "overview.topPages": "Most visited pages",
+        "overview.noData": "No data yet.",
+
+        "visits.kicker": "Log",
+        "visits.title": "Visitors",
+        "visits.limit50": "Last 50",
+        "visits.limit100": "Last 100",
+        "visits.limit250": "Last 250",
+        "visits.thDate": "Date",
+        "visits.thPage": "Page",
+        "visits.thOrigin": "Referrer",
+        "visits.thBrowser": "Browser",
+        "visits.empty": "No visits recorded.",
+        "visits.direct": "Direct",
+
+        "cv.kicker": "Document",
+        "cv.title": "Curriculum vitæ",
+        "cv.current": "Current file",
+        "cv.none": "No CV uploaded.",
+        "cv.newFile": "New file (PDF, DOC, DOCX)",
+        "cv.delete": "Delete CV",
+        "cv.downloads": "Downloads",
+        "cv.nobody": "Nobody has downloaded your CV yet.",
+        "cv.updatedOn": "Updated on {date} —",
+        "cv.open": "open",
+        "cv.unknownIp": "Unknown IP",
+        "cv.updated": "CV updated.",
+        "cv.deleted": "CV deleted.",
+        "cv.confirmDelete": "Permanently delete the CV?",
+
+        "photo.kicker": "Identity",
+        "photo.title": "Profile photo",
+        "photo.hint": "Without a photo, your initials « AR » are shown in the banner. Accepted formats: JPG, PNG, WEBP, GIF — 20 MB max.",
+        "photo.newPhoto": "New photo",
+        "photo.update": "Update photo",
+        "photo.delete": "Delete photo",
+        "photo.currentAlt": "Current profile photo",
+        "photo.updated": "Photo updated.",
+        "photo.deleted": "Photo deleted.",
+        "photo.confirmDelete": "Delete the profile photo?",
+
+        "projects.kicker": "Content",
+        "projects.title": "Projects",
+        "projects.new": "+ New project",
+        "projects.newTitle": "New project",
+        "projects.editTitle": "Edit project",
+        "projects.empty": "No projects yet. Create your first project with « + New project ».",
+        "projects.siteLink": "Site ↗",
+        "projects.codeLink": "Code ↗",
+        "projects.published": "Published",
+        "projects.draft": "Draft",
+        "projects.featured": "Featured",
+        "projects.noCategory": "No category",
+        "projects.order": "order {n}",
+        "projects.unpublish": "Unpublish",
+        "projects.publish": "Publish",
+        "projects.unpublished": "Project unpublished.",
+        "projects.publishedToast": "Project published.",
+        "projects.confirmDelete": "Permanently delete « {title} »?",
+        "projects.deleted": "Project deleted.",
+        "projects.titleRequired": "Title is required.",
+        "projects.updated": "Project updated.",
+        "projects.created": "Project created.",
+
+        "messages.kicker": "Inbox",
+        "messages.title": "Received messages",
+        "messages.limit50": "Last 50",
+        "messages.limit100": "Last 100",
+        "messages.limit250": "Last 250",
+        "messages.recipientTitle": "Message recipient",
+        "messages.recipientHint": "Receive new messages in your inbox",
+        "messages.recipientLabel": "Address that receives the messages",
+        "messages.recipientReset": "Revert to .env address",
+        "messages.empty": "No messages yet.",
+        "messages.sentTo": "New messages are sent to {email}.",
+        "messages.notConfigured": "Email sending is not configured: messages stay readable here. Set SMTP in .env to receive them in your inbox.",
+        "messages.emailSent": "Email sent",
+        "messages.emailNotSent": "Email not sent",
+        "messages.new": "New",
+        "messages.markRead": "Mark as read",
+        "messages.markUnread": "Mark as unread",
+        "messages.reply": "Reply",
+        "messages.re": "Re",
+        "messages.defaultSubject": "Your message",
+        "messages.confirmDelete": "Permanently delete this message?",
+        "messages.deleted": "Message deleted.",
+        "messages.recipientEmpty": "Enter an address, or use « Revert to .env address ».",
+        "messages.recipientSaved": "Recipient saved: {email}.",
+        "messages.recipientUpdated": "Recipient updated.",
+        "messages.recipientResetDone": ".env address restored.",
+
+        "account.kicker": "Security",
+        "account.title": "My account",
+        "account.credentials": "Username and password",
+        "account.newUsername": "New username",
+        "account.currentPassword": "Current password *",
+        "account.newPassword": "New password — 8 characters minimum, leave empty to keep it",
+        "account.howTitle": "How it works",
+        "account.rule1": "The <strong>current password</strong> is always required: an open session alone is not enough to change the account.",
+        "account.rule2": "You stay signed in after the change.",
+        "account.rule3": "A username already taken by another account is rejected.",
+        "account.rule4": "The new password must differ from the current one and contain at least 8 characters.",
+        "account.hint": "These credentials are only for this private area. They are never shown on the public site.",
+        "account.needCurrentPassword": "Enter your current password.",
+        "account.nothingToChange": "Nothing to change: enter a new username and/or a new password.",
+        "account.labelUsername": "username",
+        "account.labelPassword": "password",
+        "account.labelAccount": "account",
+        "account.updated": "Updated: {what}.",
+        "account.updatedToast": "Account updated.",
+
+        "modal.title": "Title *",
+        "modal.category": "Category",
+        "modal.icon": "Icon (emoji)",
+        "modal.order": "Display order",
+        "modal.summary": "Tagline — French",
+        "modal.summaryEn": "Tagline — English",
+        "modal.description": "Description — French",
+        "modal.descriptionEn": "Description — English",
+        "modal.technologies": "Technologies (comma separated)",
+        "modal.website": "Project link",
+        "modal.repo": "GitHub repository",
+        "modal.image": "Image (JPG, PNG, WEBP, GIF)",
+        "modal.imageShort": "Image",
+        "modal.mockup": "Mockup (image)",
+        "modal.mockupShort": "Mockup",
+        "modal.published": "Published on the site",
+        "modal.featured": "Feature on homepage"
+    }
+};
+
+let currentLanguage = "fr";
+
+/** Traduit une clé ; {placeholders} remplacés par `vars`. */
+function t(key, vars) {
+    const dict = ADMIN_I18N[currentLanguage] || ADMIN_I18N.fr;
+    let text = dict[key] !== undefined ? dict[key] : key;
+    if (vars) {
+        Object.keys(vars).forEach(name => {
+            text = text.split("{" + name + "}").join(String(vars[name]));
+        });
+    }
+    return text;
+}
+
+/** Applique la langue à toute la page admin. */
+function applyLanguage(language, save) {
+    if (!ADMIN_I18N[language]) language = "fr";
+    currentLanguage = language;
+
+    const dict = ADMIN_I18N[language];
+
+    document.querySelectorAll("[data-i18n]").forEach(element => {
+        const key = element.getAttribute("data-i18n");
+        if (dict[key] !== undefined) element.textContent = dict[key];
+    });
+
+    document.querySelectorAll("[data-i18n-html]").forEach(element => {
+        const key = element.getAttribute("data-i18n-html");
+        if (dict[key] !== undefined) element.innerHTML = dict[key];
+    });
+
+    document.querySelectorAll("[data-i18n-aria]").forEach(element => {
+        const key = element.getAttribute("data-i18n-aria");
+        if (dict[key] !== undefined) element.setAttribute("aria-label", dict[key]);
+    });
+
+    document.querySelectorAll("[data-i18n-title]").forEach(element => {
+        const key = element.getAttribute("data-i18n-title");
+        if (dict[key] !== undefined) element.setAttribute("title", dict[key]);
+    });
+
+    document.documentElement.lang = language;
+    document.title = dict["meta.title"];
+
+    const descriptionMeta = document.querySelector('meta[name="description"]');
+    if (descriptionMeta && dict["meta.description"]) {
+        descriptionMeta.setAttribute("content", dict["meta.description"]);
+    }
+
+    // Bouton : affiche la langue cible (comme sur le site public)
+    document.querySelectorAll(".lang-toggle").forEach(button => {
+        button.textContent = language === "fr" ? "EN" : "FR";
+    });
+
+    buildFormatters(language === "fr" ? "fr-FR" : "en-GB");
+    syncThemeButton();
+
+    // Etat réel des boutons « afficher le mot de passe »
+    document.querySelectorAll("[data-pw-toggle]").forEach(button => {
+        const input = document.getElementById(button.dataset.pwToggle);
+        if (!input) return;
+        const label = input.type === "text"
+            ? t("common.hidePw") : t("common.showPw");
+        button.setAttribute("aria-label", label);
+        button.title = label;
+    });
+
+    if (save) {
+        try {
+            localStorage.setItem("portfolio-language", language);
+        } catch (error) {}
+    }
+
+    // Recharge les contenus serveur affichés dans la nouvelle langue
+    if (typeof app !== "undefined" && app && !app.hidden) {
+        activateTab(currentTab);
+    } else {
+        refreshDiag();
+    }
+}
+
+// ---------------------------------------------------------
 // 1. Utilitaires
 // ---------------------------------------------------------
 
@@ -57,7 +564,8 @@ async function api(path, options = {}, isRetry = false) {
 
     if (!response.ok) {
         throw new Error(
-            (payload && payload.detail) || "Erreur " + response.status
+            (payload && payload.detail)
+            || t("common.errorStatus", { status: response.status })
         );
     }
 
@@ -101,8 +609,8 @@ function clearMessages(ids) {
 // Diagnostic de connexion (visible sur l'ecran de connexion)
 // ---------------------------------------------------------
 
-const JS_VERSION = "20261119c";
-let lastApi = "aucun appel";
+const JS_VERSION = "20261120a";
+let lastApi = "";
 
 function refreshDiag(extra) {
     const element = $("#login-diag");
@@ -110,19 +618,26 @@ function refreshDiag(extra) {
     const cookieOk = !!readCookie("csrftoken");
     element.textContent =
         "JS " + JS_VERSION +
-        " · dernier appel : " + lastApi +
-        " · cookie CSRF : " + (cookieOk ? "lu" : "ABSENT") +
+        " · " + t("diag.lastCall") + " : " + (lastApi || t("diag.none")) +
+        " · " + t("diag.csrf") + " : " + (cookieOk ? t("diag.yes") : t("diag.no")) +
         (extra ? " · " + extra : "");
 }
 
-const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit", month: "2-digit", year: "numeric",
-    hour: "2-digit", minute: "2-digit"
-});
+let dateFormatter = null;
+let shortDateFormatter = null;
 
-const shortDateFormatter = new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit", month: "short"
-});
+/** Recrée les formatteurs de date dans la langue choisie. */
+function buildFormatters(locale) {
+    dateFormatter = new Intl.DateTimeFormat(locale, {
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit"
+    });
+    shortDateFormatter = new Intl.DateTimeFormat(locale, {
+        day: "2-digit", month: "short"
+    });
+}
+
+buildFormatters("fr-FR");
 
 function formatDate(iso) {
     if (!iso) return "—";
@@ -161,7 +676,10 @@ function safeUrl(value) {
 // 2. Navigation par onglets
 // ---------------------------------------------------------
 
+let currentTab = "overview";
+
 function activateTab(name) {
+    currentTab = name;
     $$(".app-tab").forEach(button => {
         const active = button.dataset.tab === name;
         button.classList.toggle("is-active", active);
@@ -267,7 +785,9 @@ async function loadOverview() {
             data.downloads_per_day, days);
 
         const hint = $("#visits-total-hint");
-        if (hint) hint.textContent = data.totals.visits + " au total";
+        if (hint) {
+            hint.textContent = t("common.total", { n: data.totals.visits });
+        }
 
         // Pages les plus visitees
         const list = $("#top-pages");
@@ -345,7 +865,7 @@ async function loadVisits() {
                 <td>
                     ${visit.referrer
                         ? escapeHtml(truncate(visit.referrer, 42))
-                        : '<span class="pill pill--muted">Direct</span>'}
+                        : `<span class="pill pill--muted">${t("visits.direct")}</span>`}
                 </td>
                 <td><span class="ua" title="${escapeHtml(visit.user_agent)}">${
                     escapeHtml(visit.user_agent || "—")
@@ -380,14 +900,17 @@ async function loadCv() {
             box.innerHTML = `
                 <p class="file-name">${escapeHtml(profile.cv_filename || "CV")}</p>
                 <p class="file-meta">
-                    Mis à jour le ${escapeHtml(formatDate(profile.updated_at))} —
+                    ${t("cv.updatedOn", {
+                        date: escapeHtml(formatDate(profile.updated_at))
+                    })}
                     <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">
-                        ouvrir
+                        ${t("cv.open")}
                     </a>
                 </p>`;
             $("#cv-delete-btn").hidden = false;
         } else {
-            box.innerHTML = '<p class="file-empty">Aucun CV téléversé.</p>';
+            box.innerHTML =
+                `<p class="file-empty">${t("cv.none")}</p>`;
             $("#cv-delete-btn").hidden = true;
         }
 
@@ -400,7 +923,8 @@ async function loadCv() {
     try {
         const stats = await api("/api/admin/cv/");
         setBadge("#count-downloads", stats.count);
-        $("#cv-count").textContent = stats.count + " au total";
+        $("#cv-count").textContent =
+            t("common.total", { n: stats.count });
 
         const log = $("#cv-log");
         const empty = $("#cv-log-empty");
@@ -412,7 +936,7 @@ async function loadCv() {
             if (empty) empty.hidden = true;
             log.innerHTML = stats.results.map(item => `
                 <li>
-                    <span class="log-what">${escapeHtml(item.ip || "IP inconnue")}</span>
+                    <span class="log-what">${escapeHtml(item.ip || t("cv.unknownIp"))}</span>
                     <span class="log-when">${escapeHtml(formatDate(item.created_at))}</span>
                 </li>`).join("");
         }
@@ -435,14 +959,14 @@ $("#cv-form").addEventListener("submit", async event => {
 
     const button = $("#cv-upload-btn");
     button.disabled = true;
-    button.textContent = "Envoi…";
+    button.textContent = t("common.sending");
 
     try {
         const form = new FormData();
         form.append("cv", file);
         await api("/api/admin/profile/cv/", { method: "POST", body: form });
 
-        toast("CV mis à jour.", "ok");
+        toast(t("cv.updated"), "ok");
         $("#cv-file").value = "";
         await loadCv();
         loadOverview();
@@ -451,18 +975,18 @@ $("#cv-form").addEventListener("submit", async event => {
         showError("#cv-error", error.message);
         button.disabled = false;
     } finally {
-        button.textContent = "Téléverser";
+        button.textContent = t("common.upload");
     }
 });
 
 $("#cv-delete-btn").addEventListener("click", async () => {
-    if (!window.confirm("Supprimer définitivement le CV ?")) return;
+    if (!window.confirm(t("cv.confirmDelete"))) return;
 
     clearMessages(["#cv-error", "#cv-ok"]);
 
     try {
         await api("/api/admin/profile/cv/delete/", { method: "DELETE" });
-        toast("CV supprimé.", "ok");
+        toast(t("cv.deleted"), "ok");
         await loadCv();
         loadOverview();
     } catch (error) {
@@ -483,8 +1007,8 @@ function messageCard(message, emailConfigured) {
     // « Envoyé » n'est vrai que si un SMTP reeel est configure : avec le
     // backend console, l'appel reussit mais rien ne quitte le serveur.
     const emailPill = message.email_sent && emailConfigured
-        ? '<span class="pill pill--ok">Email envoyé</span>'
-        : '<span class="pill pill--warn">Email non envoyé</span>';
+        ? `<span class="pill pill--ok">${t("messages.emailSent")}</span>`
+        : `<span class="pill pill--warn">${t("messages.emailNotSent")}</span>`;
 
     const subject = message.subject
         ? `<p class="message-subject">${escapeHtml(message.subject)}</p>`
@@ -504,7 +1028,7 @@ function messageCard(message, emailConfigured) {
                     </div>
                 </div>
                 <div class="message-meta">
-                    ${message.is_read ? "" : '<span class="pill pill--brand">Nouveau</span>'}
+                    ${message.is_read ? "" : `<span class="pill pill--brand">${t("messages.new")}</span>`}
                     ${emailPill}
                     <time datetime="${escapeHtml(message.created_at || "")}">${
                         escapeHtml(formatDate(message.created_at))
@@ -517,14 +1041,15 @@ function messageCard(message, emailConfigured) {
 
             <div class="message-actions">
                 <button type="button" class="btn btn-ghost btn-sm" data-action="read">
-                    ${message.is_read ? "Marquer non lu" : "Marquer lu"}
+                    ${message.is_read ? t("messages.markUnread") : t("messages.markRead")}
                 </button>
                 <a class="btn btn-ghost btn-sm"
                    href="mailto:${escapeHtml(message.email)}?subject=${encodeURIComponent(
-                       "Re : " + (message.subject || "Votre message")
-                   )}">Répondre</a>
+                       t("messages.re") + " : " +
+                       (message.subject || t("messages.defaultSubject"))
+                   )}">${t("messages.reply")}</a>
                 <button type="button" class="btn btn-danger btn-sm"
-                        data-action="delete">Supprimer</button>
+                        data-action="delete">${t("common.delete")}</button>
             </div>
         </article>`;
 }
@@ -551,13 +1076,10 @@ async function loadMessages() {
         if (status) {
             if (data.email_configured) {
                 status.textContent =
-                    "Les nouveaux messages sont envoyés à " + data.recipient + ".";
+                    t("messages.sentTo", { email: data.recipient });
                 status.className = "panel-note is-ok";
             } else {
-                status.textContent =
-                    "L'envoi d'email n'est pas configuré : les messages restent " +
-                    "lisibles ici. Renseignez SMTP dans .env pour les recevoir " +
-                    "dans votre boîte mail.";
+                status.textContent = t("messages.notConfigured");
                 status.className = "panel-note is-warn";
             }
             status.hidden = false;
@@ -601,11 +1123,11 @@ $("#message-list").addEventListener("click", async event => {
     if (!message) return;
 
     if (button.dataset.action === "delete") {
-        if (!window.confirm("Supprimer définitivement ce message ?")) return;
+        if (!window.confirm(t("messages.confirmDelete"))) return;
 
         try {
             await api("/api/admin/messages/" + id + "/", { method: "DELETE" });
-            toast("Message supprimé.", "ok");
+            toast(t("messages.deleted"), "ok");
             await loadMessages();
             loadOverview();
         } catch (error) {
@@ -643,7 +1165,7 @@ $("#recipient-form").addEventListener("submit", async event => {
     if (!value) {
         showError(
             "#recipient-error",
-            "Saisissez une adresse, ou utilisez « Revenir à l'adresse .env »."
+            t("messages.recipientEmpty")
         );
         field.focus();
         return;
@@ -652,15 +1174,18 @@ $("#recipient-form").addEventListener("submit", async event => {
     const button = $("#recipient-save");
     const label = button.textContent;
     button.disabled = true;
-    button.textContent = "Enregistrement…";
+    button.textContent = t("common.saving");
 
     try {
         await api("/api/admin/profile/", {
             method: "PATCH",
             body: { contact_email: value }
         });
-        showError("#recipient-ok", "Destinataire enregistré : " + value + ".");
-        toast("Destinataire mis à jour.", "ok");
+        showError(
+            "#recipient-ok",
+            t("messages.recipientSaved", { email: value })
+        );
+        toast(t("messages.recipientUpdated"), "ok");
         await loadMessages();
     } catch (error) {
         showError("#recipient-error", error.message);
@@ -681,7 +1206,7 @@ $("#recipient-reset").addEventListener("click", async () => {
             method: "PATCH",
             body: { contact_email: "" }
         });
-        toast("Adresse du .env rétablie.", "ok");
+        toast(t("messages.recipientResetDone"), "ok");
         await loadMessages();
     } catch (error) {
         showError("#recipient-error", error.message);
@@ -703,7 +1228,7 @@ async function loadPhoto() {
         if (profile.photo) {
             const url = safeUrl(profile.photo);
             preview.innerHTML = url
-                ? `<img src="${escapeHtml(url)}" alt="Photo de profil actuelle">`
+                ? `<img src="${escapeHtml(url)}" alt="${t("photo.currentAlt")}">`
                 : '<span class="photo-placeholder">AR</span>';
             $("#photo-delete-btn").hidden = false;
         } else {
@@ -732,14 +1257,14 @@ $("#photo-form").addEventListener("submit", async event => {
 
     const button = $("#photo-upload-btn");
     button.disabled = true;
-    button.textContent = "Envoi…";
+    button.textContent = t("common.sending");
 
     try {
         const form = new FormData();
         form.append("photo", file);
         await api("/api/admin/profile/photo/", { method: "POST", body: form });
 
-        toast("Photo mise à jour.", "ok");
+        toast(t("photo.updated"), "ok");
         $("#photo-file").value = "";
         await loadPhoto();
 
@@ -747,18 +1272,18 @@ $("#photo-form").addEventListener("submit", async event => {
         showError("#photo-error", error.message);
         button.disabled = false;
     } finally {
-        button.textContent = "Mettre à jour la photo";
+        button.textContent = t("photo.update");
     }
 });
 
 $("#photo-delete-btn").addEventListener("click", async () => {
-    if (!window.confirm("Supprimer la photo de profil ?")) return;
+    if (!window.confirm(t("photo.confirmDelete"))) return;
 
     clearMessages(["#photo-error", "#photo-ok"]);
 
     try {
         await api("/api/admin/profile/photo/delete/", { method: "DELETE" });
-        toast("Photo supprimée.", "ok");
+        toast(t("photo.deleted"), "ok");
         await loadPhoto();
     } catch (error) {
         showError("#photo-error", error.message);
@@ -794,8 +1319,7 @@ async function loadProjects() {
         if (!projectsCache.length) {
             container.innerHTML = `
                 <p class="table-empty">
-                    Aucun projet. Créez votre premier projet avec
-                    « + Nouveau projet ».
+                    ${t("projects.empty")}
                 </p>`;
             return;
         }
@@ -815,12 +1339,12 @@ async function loadProjects() {
             if (safeUrl(project.website_url)) {
                 links.push(`<a class="btn btn-ghost btn-sm" target="_blank"
                     rel="noopener noreferrer"
-                    href="${escapeHtml(safeUrl(project.website_url))}">Site ↗</a>`);
+                    href="${escapeHtml(safeUrl(project.website_url))}">${t("projects.siteLink")}</a>`);
             }
             if (safeUrl(project.repo_url)) {
                 links.push(`<a class="btn btn-ghost btn-sm" target="_blank"
                     rel="noopener noreferrer"
-                    href="${escapeHtml(safeUrl(project.repo_url))}">Code ↗</a>`);
+                    href="${escapeHtml(safeUrl(project.repo_url))}">${t("projects.codeLink")}</a>`);
             }
 
             return `
@@ -834,15 +1358,15 @@ async function loadProjects() {
                         <div class="project-title">
                             ${escapeHtml(project.title)}
                             <span class="pill ${project.is_published ? "pill--ok" : "pill--off"}">
-                                ${project.is_published ? "Publié" : "Brouillon"}
+                                ${project.is_published ? t("projects.published") : t("projects.draft")}
                             </span>
                             ${project.is_featured
-                                ? '<span class="pill">Vedette</span>' : ""}
+                                ? `<span class="pill">${t("projects.featured")}</span>` : ""}
                         </div>
 
                         <p class="project-meta">
-                            ${escapeHtml(project.category || "Sans catégorie")}
-                            · ordre ${project.order}
+                            ${escapeHtml(project.category || t("projects.noCategory"))}
+                            · ${t("projects.order", { n: project.order })}
                         </p>
 
                         <div class="project-tags">${tags}</div>
@@ -851,12 +1375,12 @@ async function loadProjects() {
                     <div class="project-actions">
                         <button type="button" class="btn btn-ghost btn-sm"
                                 data-action="toggle">
-                            ${project.is_published ? "Dépublier" : "Publier"}
+                            ${project.is_published ? t("projects.unpublish") : t("projects.publish")}
                         </button>
                         <button type="button" class="btn btn-ghost btn-sm"
-                                data-action="edit">Modifier</button>
+                                data-action="edit">${t("common.edit")}</button>
                         <button type="button" class="btn btn-danger btn-sm"
-                                data-action="delete">Supprimer</button>
+                                data-action="delete">${t("common.delete")}</button>
                         ${links.join("")}
                     </div>
                 </article>`;
@@ -890,7 +1414,8 @@ $("#project-list").addEventListener("click", async event => {
                 method: "PUT",
                 body: { is_published: !project.is_published }
             });
-            toast(project.is_published ? "Projet dépublié." : "Projet publié.", "ok");
+            toast(project.is_published
+                ? t("projects.unpublished") : t("projects.publishedToast"), "ok");
             await loadProjects();
             loadOverview();
         } catch (error) {
@@ -902,14 +1427,14 @@ $("#project-list").addEventListener("click", async event => {
 
     if (action === "delete") {
         const confirmed = window.confirm(
-            "Supprimer définitivement « " + project.title + " » ?"
+            t("projects.confirmDelete", { title: project.title })
         );
         if (!confirmed) return;
 
         button.disabled = true;
         try {
             await api("/api/admin/projects/" + id + "/", { method: "DELETE" });
-            toast("Projet supprimé.", "ok");
+            toast(t("projects.deleted"), "ok");
             await loadProjects();
             loadOverview();
         } catch (error) {
@@ -935,7 +1460,7 @@ function openProjectModal(project) {
     projectForm.reset();
 
     $("#project-modal-title").textContent = project
-        ? "Modifier le projet" : "Nouveau projet";
+        ? t("projects.editTitle") : t("projects.newTitle");
 
     $("#p-id").value = project ? project.id : "";
     $("#p-title").value = project ? project.title : "";
@@ -959,13 +1484,13 @@ function openProjectModal(project) {
 
     if (project && safeUrl(project.image)) {
         items.push(`
-            <span class="thumb-item">Visuel
+            <span class="thumb-item">${t("modal.imageShort")}
                 <img src="${escapeHtml(safeUrl(project.image))}" alt="">
             </span>`);
     }
     if (project && safeUrl(project.mockup)) {
         items.push(`
-            <span class="thumb-item">Maquette
+            <span class="thumb-item">${t("modal.mockupShort")}
                 <img src="${escapeHtml(safeUrl(project.mockup))}" alt="">
             </span>`);
     }
@@ -1004,14 +1529,14 @@ projectForm.addEventListener("submit", async event => {
     const title = $("#p-title").value.trim();
 
     if (!title) {
-        showError("#project-error", "Le titre est obligatoire.");
+        showError("#project-error", t("projects.titleRequired"));
         $("#p-title").focus();
         return;
     }
 
     const button = $("#project-save-btn");
     button.disabled = true;
-    button.textContent = "Enregistrement…";
+    button.textContent = t("common.saving");
 
     try {
         const form = new FormData();
@@ -1046,7 +1571,7 @@ projectForm.addEventListener("submit", async event => {
 
         await api(url, { method: "POST", body: form });
 
-        toast(id ? "Projet mis à jour." : "Projet créé.", "ok");
+        toast(id ? t("projects.updated") : t("projects.created"), "ok");
         closeProjectModal();
         await loadProjects();
         loadOverview();
@@ -1055,7 +1580,7 @@ projectForm.addEventListener("submit", async event => {
         showError("#project-error", error.message);
     } finally {
         button.disabled = false;
-        button.textContent = "Enregistrer";
+        button.textContent = t("common.save");
     }
 });
 
@@ -1071,7 +1596,7 @@ function syncThemeButton() {
     themeToggle.textContent = dark ? "☀️" : "🌙";
     themeToggle.setAttribute(
         "aria-label",
-        dark ? "Passer en mode clair" : "Passer en mode sombre"
+        dark ? t("a11y.themeLight") : t("a11y.themeDark")
     );
 }
 
@@ -1117,18 +1642,18 @@ function showApp(username) {
 }
 
 async function checkSession() {
-    refreshDiag("vérification de session…");
+    refreshDiag(t("diag.checking"));
     try {
         const me = await api("/api/auth/me/");
         if (me.authenticated) {
             showApp(me.username);
         } else {
             showLogin();
-            refreshDiag("session absente");
+            refreshDiag(t("diag.noSession"));
         }
     } catch (error) {
-        showLogin("Impossible de joindre l'API.");
-        refreshDiag("API inaccessible");
+        showLogin(t("login.apiDown"));
+        refreshDiag(t("diag.apiDown"));
     }
 }
 
@@ -1150,7 +1675,7 @@ $("#login-form").addEventListener("submit", async event => {
         const userField = $("#login-username");
         const passField = $("#login-password");
         if (!userField || !passField) {
-            failSafe("Formulaire introuvable — rechargez la page (Ctrl+Maj+R).");
+            failSafe(t("login.formMissing"));
             return;
         }
 
@@ -1158,13 +1683,13 @@ $("#login-form").addEventListener("submit", async event => {
         const password = passField.value;
 
         if (!username || !password) {
-            failSafe("Identifiant et mot de passe requis.");
+            failSafe(t("login.required"));
             return;
         }
 
         const button = $("#login-submit");
         button.disabled = true;
-        button.textContent = "Connexion…";
+        button.textContent = t("login.connecting");
 
         try {
             const result = await api("/api/auth/login/", {
@@ -1173,34 +1698,33 @@ $("#login-form").addEventListener("submit", async event => {
             });
 
             if (!result || !result.username) {
-                throw new Error(
-                    "Réponse inattendue du serveur (connexion non confirmée)."
-                );
+                throw new Error(t("login.unexpected"));
             }
 
             showApp(result.username);
             passField.value = "";
-            toast("Connexion réussie.", "ok");
-            refreshDiag("CONNECTÉ");
+            toast(t("login.success"), "ok");
+            refreshDiag(t("diag.connected"));
         } catch (error) {
-            failSafe(error && error.message ? error.message : "Connexion impossible.");
-            refreshDiag("ÉCHEC");
+            failSafe(error && error.message ? error.message : t("login.impossible"));
+            refreshDiag(t("diag.failed"));
         } finally {
             button.disabled = false;
-            button.textContent = "Se connecter";
+            button.textContent = t("login.submit");
         }
     } catch (error) {
-        failSafe(error && error.message ? error.message : "Erreur inattendue.");
+        failSafe(error && error.message ? error.message : t("common.unexpected"));
     }
 });
 
 // Rien ne doit rester muet : toute erreur JS non attrapée devient visible.
 window.addEventListener("error", event => {
-    toast("Erreur JS : " + (event.message || "inconnue"), "err");
+    toast(t("diag.jsError") + (event.message || "?"), "err");
 });
 window.addEventListener("unhandledrejection", event => {
     const r = event.reason;
-    toast("Erreur réseau : " + (r && r.message ? r.message : String(r)), "err");
+    toast(t("diag.networkError") +
+        (r && r.message ? r.message : String(r)), "err");
 });
 
 $("#logout-btn").addEventListener("click", async () => {
@@ -1210,7 +1734,7 @@ $("#logout-btn").addEventListener("click", async () => {
         // On redirige quand meme vers l'ecran de connexion.
     }
     showLogin();
-    toast("Déconnecté.", "ok");
+    toast(t("login.loggedOut"), "ok");
 });
 
 
@@ -1225,8 +1749,8 @@ function togglePassword(input, button) {
     input.type = wasHidden ? "text" : "password";
     button.setAttribute("aria-pressed", String(wasHidden));
     const label = wasHidden
-        ? "Masquer le mot de passe"
-        : "Afficher le mot de passe";
+        ? t("common.hidePw")
+        : t("common.showPw");
     button.setAttribute("aria-label", label);
     button.title = label;
 }
@@ -1267,7 +1791,7 @@ $("#account-form").addEventListener("submit", async event => {
     const newPassword = $("#acc-new").value;
 
     if (!currentPassword) {
-        showError("#account-error", "Saisissez votre mot de passe actuel.");
+        showError("#account-error", t("account.needCurrentPassword"));
         $("#acc-current").focus();
         return;
     }
@@ -1278,17 +1802,14 @@ $("#account-form").addEventListener("submit", async event => {
     if (newPassword) body.new_password = newPassword;
 
     if (!body.username && !body.new_password) {
-        showError(
-            "#account-error",
-            "Rien à modifier : saisissez un nouvel identifiant et/ou un nouveau mot de passe."
-        );
+        showError("#account-error", t("account.nothingToChange"));
         return;
     }
 
     const button = $("#account-save");
     const label = button.textContent;
     button.disabled = true;
-    button.textContent = "Enregistrement…";
+    button.textContent = t("common.saving");
 
     try {
         const result = await api("/api/admin/account/", {
@@ -1307,9 +1828,16 @@ $("#account-form").addEventListener("submit", async event => {
             if (hint) hint.textContent = result.username;
         }
 
-        const what = (result.updated || []).join(" et ") || "compte";
-        showError("#account-ok", "Mis à jour : " + what + ".");
-        toast("Compte mis à jour.", "ok");
+        // Le serveur renvoie les libelles en français : on les traduit.
+        const labels = {
+            "identifiant": t("account.labelUsername"),
+            "mot de passe": t("account.labelPassword")
+        };
+        const parts = (result.updated || [])
+            .map(item => labels[item] || item);
+        const what = parts.join(t("common.and")) || t("account.labelAccount");
+        showError("#account-ok", t("account.updated", { what: what }));
+        toast(t("account.updatedToast"), "ok");
     } catch (error) {
         showError("#account-error", error.message);
     } finally {
@@ -1322,5 +1850,20 @@ $("#account-form").addEventListener("submit", async event => {
 // ---------------------------------------------------------
 // 11. Demarrage
 // ---------------------------------------------------------
+
+// Bascule FR <-> EN (ecran de connexion + barre du haut)
+$$(".lang-toggle").forEach(button => {
+    button.addEventListener("click", () => {
+        applyLanguage(currentLanguage === "fr" ? "en" : "fr", true);
+    });
+});
+
+// Meme cle de preference que le site public : une seule langue pour tout
+// le portfolio. La page est deja rendue en francais par defaut.
+let savedLanguage = null;
+try {
+    savedLanguage = localStorage.getItem("portfolio-language");
+} catch (error) {}
+applyLanguage(savedLanguage === "en" ? "en" : "fr", false);
 
 checkSession();

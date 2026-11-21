@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="css/admin.css?v=20261120g">
+    <link rel="stylesheet" href="css/admin.css?v=20261120h">
 
     <script>
         (function () {
@@ -44,26 +44,28 @@
 
         <a class="login-logo" href="index.html">Angelo<span>.</span></a>
 
-        <h1>Espace administration</h1>
-        <p class="login-sub">
+        <h1 data-i18n="login.title">Espace administration</h1>
+        <p class="login-sub" data-i18n="login.sub">
             Gérez vos projets, votre photo, votre CV et suivez vos visiteurs.
         </p>
 
         <form id="login-form" novalidate>
 
             <label class="field">
-                <span>Identifiant</span>
+                <span data-i18n="login.username">Identifiant</span>
                 <input type="text" id="login-username" name="username"
                        autocomplete="username" required>
             </label>
 
             <label class="field">
-                <span>Mot de passe</span>
+                <span data-i18n="login.password">Mot de passe</span>
                 <span class="pw-wrap">
                     <input type="password" id="login-password" name="password"
                            autocomplete="current-password" required>
                     <button type="button" class="pw-toggle" id="login-pw-toggle"
                             data-pw-toggle="login-password"
+                            data-i18n-aria="common.showPw"
+                            data-i18n-title="common.showPw"
                             aria-label="Afficher le mot de passe"
                             aria-pressed="false" title="Afficher le mot de passe">
                         <svg class="ico-eye" viewBox="0 0 24 24" width="17"
@@ -94,13 +96,19 @@
             <p class="login-diag" id="login-diag" aria-live="polite"></p>
 
             <button type="submit" class="btn btn-primary btn-block"
-                    id="login-submit">
+                    id="login-submit" data-i18n="login.submit">
                 Se connecter
             </button>
 
         </form>
 
-        <a class="login-back" href="index.html">← Retour au site</a>
+        <div class="login-foot">
+            <a class="login-back" href="index.html"
+               data-i18n="login.back">← Retour au site</a>
+
+            <button class="icon-btn lang-toggle" type="button"
+                    data-i18n-aria="a11y.lang">EN</button>
+        </div>
 
     </div>
 
@@ -115,18 +123,19 @@
     <header class="app-topbar">
         <a class="app-logo" href="index.html">Angelo<span>.</span></a>
 
-        <span class="app-badge">Administration</span>
+        <span class="app-badge" data-i18n="app.badge">Administration</span>
 
         <div class="app-topbar-right">
             <button id="theme-toggle" class="icon-btn" type="button"
                     aria-label="Basculer le thème">🌙</button>
 
-            <a class="icon-btn" href="index.html" title="Voir le site"
-               aria-label="Voir le site public">↗</a>
+            <button id="language-toggle" class="icon-btn lang-toggle" type="button"
+                    data-i18n-aria="a11y.lang">EN</button>
 
             <span class="app-user" id="app-user"></span>
 
-            <button class="btn btn-ghost btn-sm" id="logout-btn" type="button">
+            <button class="btn btn-ghost btn-sm" id="logout-btn" type="button"
+                    data-i18n="common.logout">
                 Se déconnecter
             </button>
         </div>
@@ -135,32 +144,33 @@
     <div class="app-body">
 
         <!-- Onglets -->
-        <nav class="app-tabs" role="tablist" aria-label="Sections">
+        <nav class="app-tabs" role="tablist" aria-label="Sections"
+             data-i18n-aria="a11y.sections">
 
             <button class="app-tab is-active" role="tab" type="button"
                     data-tab="overview" aria-selected="true">
                 <span class="tab-ico" aria-hidden="true">▤</span>
-                Vue d'ensemble
+                <span data-i18n="tab.overview">Vue d'ensemble</span>
             </button>
 
             <button class="app-tab" role="tab" type="button"
                     data-tab="visitors" aria-selected="false">
                 <span class="tab-ico" aria-hidden="true">◉</span>
-                Visiteurs
+                <span data-i18n="tab.visitors">Visiteurs</span>
                 <span class="tab-count" id="count-visits"></span>
             </button>
 
             <button class="app-tab" role="tab" type="button"
                     data-tab="cv" aria-selected="false">
                 <span class="tab-ico" aria-hidden="true">▣</span>
-                CV
+                <span data-i18n="tab.cv">CV</span>
                 <span class="tab-count" id="count-downloads"></span>
             </button>
 
             <button class="app-tab" role="tab" type="button"
                     data-tab="messages" aria-selected="false">
                 <span class="tab-ico" aria-hidden="true">✉</span>
-                Messages
+                <span data-i18n="tab.messages">Messages</span>
                 <span class="tab-count tab-count-alert"
                       id="count-messages" hidden></span>
             </button>
@@ -168,20 +178,20 @@
             <button class="app-tab" role="tab" type="button"
                     data-tab="photo" aria-selected="false">
                 <span class="tab-ico" aria-hidden="true">◍</span>
-                Photo de profil
+                <span data-i18n="tab.photo">Photo de profil</span>
             </button>
 
             <button class="app-tab" role="tab" type="button"
                     data-tab="projects" aria-selected="false">
                 <span class="tab-ico" aria-hidden="true">▦</span>
-                Projets
+                <span data-i18n="tab.projects">Projets</span>
                 <span class="tab-count" id="count-projects"></span>
             </button>
 
             <button class="app-tab" role="tab" type="button"
                     data-tab="account" aria-selected="false">
                 <span class="tab-ico" aria-hidden="true">⚿</span>
-                Compte
+                <span data-i18n="tab.account">Compte</span>
             </button>
 
         </nav>
@@ -193,55 +203,60 @@
 
                 <div class="panel-head">
                     <div>
-                        <p class="panel-kicker">Statistiques</p>
-                        <h2>Vue d'ensemble</h2>
+                        <p class="panel-kicker" data-i18n="overview.kicker">Statistiques</p>
+                        <h2 data-i18n="overview.title">Vue d'ensemble</h2>
                     </div>
                     <button class="btn btn-ghost btn-sm" id="refresh-overview"
-                            type="button">Rafraîchir</button>
+                            type="button" data-i18n="common.refresh">Rafraîchir</button>
                 </div>
 
                 <div class="kpi-grid" id="kpi-grid">
                     <div class="kpi"><span class="kpi-value" data-kpi="visits">—</span>
-                        <span class="kpi-label">Visites au total</span></div>
+                        <span class="kpi-label" data-i18n="overview.kpiVisits">Visites au total</span></div>
                     <div class="kpi"><span class="kpi-value" data-kpi="today">—</span>
-                        <span class="kpi-label">Aujourd'hui</span></div>
+                        <span class="kpi-label" data-i18n="overview.kpiToday">Aujourd'hui</span></div>
                     <div class="kpi"><span class="kpi-value" data-kpi="week">—</span>
-                        <span class="kpi-label">7 derniers jours</span></div>
+                        <span class="kpi-label" data-i18n="overview.kpiWeek">7 derniers jours</span></div>
                     <div class="kpi"><span class="kpi-value" data-kpi="month">—</span>
-                        <span class="kpi-label">30 derniers jours</span></div>
+                        <span class="kpi-label" data-i18n="overview.kpiMonth">30 derniers jours</span></div>
                     <div class="kpi"><span class="kpi-value" data-kpi="downloads">—</span>
-                        <span class="kpi-label">Téléchargements CV</span></div>
+                        <span class="kpi-label" data-i18n="overview.kpiDownloads">Téléchargements CV</span></div>
                     <div class="kpi"><span class="kpi-value" data-kpi="projects">—</span>
-                        <span class="kpi-label">Projets publiés</span></div>
+                        <span class="kpi-label" data-i18n="overview.kpiProjects">Projets publiés</span></div>
                 </div>
 
                 <div class="card">
                     <div class="card-head">
-                        <h3>Visites sur 30 jours</h3>
+                        <h3 data-i18n="overview.visitsCard">Visites sur 30 jours</h3>
                         <span class="card-hint" id="visits-total-hint"></span>
                     </div>
                     <div class="chart" id="chart-visits" role="img"
+                         data-i18n-aria="overview.visitsAria"
                          aria-label="Histogramme des visites par jour"></div>
-                    <p class="chart-empty" id="chart-visits-empty" hidden>
+                    <p class="chart-empty" id="chart-visits-empty" hidden
+                       data-i18n="overview.visitsEmpty">
                         Aucune visite enregistrée pour l'instant.
                     </p>
                 </div>
 
                 <div class="card">
                     <div class="card-head">
-                        <h3>Téléchargements de CV sur 30 jours</h3>
+                        <h3 data-i18n="overview.cvCard">Téléchargements de CV sur 30 jours</h3>
                     </div>
                     <div class="chart" id="chart-downloads" role="img"
+                         data-i18n-aria="overview.cvAria"
                          aria-label="Histogramme des téléchargements de CV par jour"></div>
-                    <p class="chart-empty" id="chart-downloads-empty" hidden>
+                    <p class="chart-empty" id="chart-downloads-empty" hidden
+                       data-i18n="overview.cvEmpty">
                         Aucun téléchargement pour l'instant.
                     </p>
                 </div>
 
                 <div class="card">
-                    <div class="card-head"><h3>Pages les plus visitées</h3></div>
+                    <div class="card-head"><h3 data-i18n="overview.topPages">Pages les plus visitées</h3></div>
                     <ul class="top-list" id="top-pages"></ul>
-                    <p class="chart-empty" id="top-pages-empty" hidden>
+                    <p class="chart-empty" id="top-pages-empty" hidden
+                       data-i18n="overview.noData">
                         Pas encore de données.
                     </p>
                 </div>
@@ -253,20 +268,20 @@
 
                 <div class="panel-head">
                     <div>
-                        <p class="panel-kicker">Journal</p>
-                        <h2>Visiteurs</h2>
+                        <p class="panel-kicker" data-i18n="visits.kicker">Journal</p>
+                        <h2 data-i18n="visits.title">Visiteurs</h2>
                     </div>
                     <div class="panel-actions">
                         <label class="inline-field">
-                            <span class="sr-only">Nombre de lignes</span>
+                            <span class="sr-only" data-i18n="common.rows">Nombre de lignes</span>
                             <select id="visits-limit">
-                                <option value="50">50 dernières</option>
-                                <option value="100" selected>100 dernières</option>
-                                <option value="250">250 dernières</option>
+                                <option value="50" data-i18n="visits.limit50">50 dernières</option>
+                                <option value="100" selected data-i18n="visits.limit100">100 dernières</option>
+                                <option value="250" data-i18n="visits.limit250">250 dernières</option>
                             </select>
                         </label>
                         <button class="btn btn-ghost btn-sm" id="refresh-visits"
-                                type="button">Rafraîchir</button>
+                                type="button" data-i18n="common.refresh">Rafraîchir</button>
                     </div>
                 </div>
 
@@ -275,17 +290,18 @@
                         <table class="table" id="visits-table">
                             <thead>
                                 <tr>
-                                    <th scope="col">Date</th>
-                                    <th scope="col">Page</th>
+                                    <th scope="col" data-i18n="visits.thDate">Date</th>
+                                    <th scope="col" data-i18n="visits.thPage">Page</th>
                                     <th scope="col">IP</th>
-                                    <th scope="col">Origine</th>
-                                    <th scope="col">Navigateur</th>
+                                    <th scope="col" data-i18n="visits.thOrigin">Origine</th>
+                                    <th scope="col" data-i18n="visits.thBrowser">Navigateur</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
                         </table>
                     </div>
-                    <p class="table-empty" id="visits-empty" hidden>
+                    <p class="table-empty" id="visits-empty" hidden
+                       data-i18n="visits.empty">
                         Aucune visite enregistrée.
                     </p>
                 </div>
@@ -297,23 +313,23 @@
 
                 <div class="panel-head">
                     <div>
-                        <p class="panel-kicker">Document</p>
-                        <h2>Curriculum vitæ</h2>
+                        <p class="panel-kicker" data-i18n="cv.kicker">Document</p>
+                        <h2 data-i18n="cv.title">Curriculum vitæ</h2>
                     </div>
                 </div>
 
                 <div class="grid-2">
 
                     <div class="card">
-                        <div class="card-head"><h3>Fichier actuel</h3></div>
+                        <div class="card-head"><h3 data-i18n="cv.current">Fichier actuel</h3></div>
 
                         <div class="file-box" id="cv-current">
-                            <p class="file-empty">Aucun CV téléversé.</p>
+                            <p class="file-empty" data-i18n="cv.none">Aucun CV téléversé.</p>
                         </div>
 
                         <form id="cv-form" class="stack-form">
                             <label class="field">
-                                <span>Nouveau fichier (PDF, DOC, DOCX)</span>
+                                <span data-i18n="cv.newFile">Nouveau fichier (PDF, DOC, DOCX)</span>
                                 <input type="file" id="cv-file" name="cv"
                                        accept=".pdf,.doc,.docx">
                             </label>
@@ -321,11 +337,13 @@
                             <p class="form-ok" id="cv-ok" role="status" hidden></p>
                             <div class="btn-row">
                                 <button type="submit" class="btn btn-primary btn-sm"
-                                        id="cv-upload-btn" disabled>
+                                        id="cv-upload-btn" disabled
+                                        data-i18n="common.upload">
                                     Téléverser
                                 </button>
                                 <button type="button" class="btn btn-danger btn-sm"
-                                        id="cv-delete-btn" hidden>
+                                        id="cv-delete-btn" hidden
+                                        data-i18n="cv.delete">
                                     Supprimer le CV
                                 </button>
                             </div>
@@ -334,12 +352,13 @@
 
                     <div class="card">
                         <div class="card-head">
-                            <h3>Téléchargements</h3>
+                            <h3 data-i18n="cv.downloads">Téléchargements</h3>
                             <span class="card-hint" id="cv-count">0</span>
                         </div>
 
                         <ul class="log-list" id="cv-log"></ul>
-                        <p class="chart-empty" id="cv-log-empty" hidden>
+                        <p class="chart-empty" id="cv-log-empty" hidden
+                           data-i18n="cv.nobody">
                             Personne n'a encore téléchargé votre CV.
                         </p>
                     </div>
@@ -353,8 +372,8 @@
 
                 <div class="panel-head">
                     <div>
-                        <p class="panel-kicker">Identité</p>
-                        <h2>Photo de profil</h2>
+                        <p class="panel-kicker" data-i18n="photo.kicker">Identité</p>
+                        <h2 data-i18n="photo.title">Photo de profil</h2>
                     </div>
                 </div>
 
@@ -364,14 +383,14 @@
                         <span class="photo-placeholder">AR</span>
                     </div>
 
-                    <p class="hint" id="photo-hint">
+                    <p class="hint" id="photo-hint" data-i18n="photo.hint">
                         Sans photo, vos initiales « AR » sont affichées dans la bannière d'accueil.
                         Formats acceptés : JPG, PNG, WEBP, GIF — 20 Mo maximum.
                     </p>
 
                     <form id="photo-form" class="stack-form">
                         <label class="field">
-                            <span>Nouvelle photo</span>
+                            <span data-i18n="photo.newPhoto">Nouvelle photo</span>
                             <input type="file" id="photo-file" name="photo"
                                    accept="image/png,image/jpeg,image/webp,image/gif">
                         </label>
@@ -379,11 +398,13 @@
                         <p class="form-ok" id="photo-ok" role="status" hidden></p>
                         <div class="btn-row">
                             <button type="submit" class="btn btn-primary btn-sm"
-                                    id="photo-upload-btn" disabled>
+                                    id="photo-upload-btn" disabled
+                                    data-i18n="photo.update">
                                 Mettre à jour la photo
                             </button>
                             <button type="button" class="btn btn-danger btn-sm"
-                                    id="photo-delete-btn" hidden>
+                                    id="photo-delete-btn" hidden
+                                    data-i18n="photo.delete">
                                 Supprimer la photo
                             </button>
                         </div>
@@ -398,15 +419,15 @@
 
                 <div class="panel-head">
                     <div>
-                        <p class="panel-kicker">Contenu</p>
-                        <h2>Projets</h2>
+                        <p class="panel-kicker" data-i18n="projects.kicker">Contenu</p>
+                        <h2 data-i18n="projects.title">Projets</h2>
                     </div>
                     <button class="btn btn-primary btn-sm" id="new-project-btn"
-                            type="button">+ Nouveau projet</button>
+                            type="button" data-i18n="projects.new">+ Nouveau projet</button>
                 </div>
 
                 <div class="project-list" id="project-list">
-                    <p class="table-empty">Chargement…</p>
+                    <p class="table-empty" data-i18n="common.loading">Chargement…</p>
                 </div>
 
             </section>
@@ -416,35 +437,35 @@
 
                 <div class="panel-head">
                     <div>
-                        <p class="panel-kicker">Boîte de réception</p>
-                        <h2>Messages reçus</h2>
+                        <p class="panel-kicker" data-i18n="messages.kicker">Boîte de réception</p>
+                        <h2 data-i18n="messages.title">Messages reçus</h2>
                         <p class="panel-note" id="mail-status" hidden></p>
                     </div>
                     <div class="panel-actions">
                         <label class="inline-field">
-                            <span class="sr-only">Nombre de lignes</span>
+                            <span class="sr-only" data-i18n="common.rows">Nombre de lignes</span>
                             <select id="messages-limit">
-                                <option value="50">50 derniers</option>
-                                <option value="100" selected>100 derniers</option>
-                                <option value="250">250 derniers</option>
+                                <option value="50" data-i18n="messages.limit50">50 derniers</option>
+                                <option value="100" selected data-i18n="messages.limit100">100 derniers</option>
+                                <option value="250" data-i18n="messages.limit250">250 derniers</option>
                             </select>
                         </label>
                         <button class="btn btn-ghost btn-sm" id="refresh-messages"
-                                type="button">Rafraîchir</button>
+                                type="button" data-i18n="common.refresh">Rafraîchir</button>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-head">
-                        <h3>Destinataire des messages</h3>
-                        <span class="card-hint">Recevoir les nouveaux messages
+                        <h3 data-i18n="messages.recipientTitle">Destinataire des messages</h3>
+                        <span class="card-hint" data-i18n="messages.recipientHint">Recevoir les nouveaux messages
                             dans votre boîte mail</span>
                     </div>
 
                     <form id="recipient-form" class="stack-form">
 
                         <label class="field">
-                            <span>Adresse qui reçoit les messages</span>
+                            <span data-i18n="messages.recipientLabel">Adresse qui reçoit les messages</span>
                             <input type="email" id="recipient-input"
                                    placeholder="vous@exemple.com"
                                    autocomplete="email" maxlength="254">
@@ -455,11 +476,11 @@
 
                         <div class="btn-row">
                             <button type="submit" class="btn btn-primary btn-sm"
-                                    id="recipient-save">
+                                    id="recipient-save" data-i18n="common.save">
                                 Enregistrer
                             </button>
                             <button type="button" class="btn btn-ghost btn-sm"
-                                    id="recipient-reset">
+                                    id="recipient-reset" data-i18n="messages.recipientReset">
                                 Revenir à l'adresse .env
                             </button>
                         </div>
@@ -468,10 +489,11 @@
                 </div>
 
                 <div class="message-list" id="message-list">
-                    <p class="table-empty">Chargement…</p>
+                    <p class="table-empty" data-i18n="common.loading">Chargement…</p>
                 </div>
 
-                <p class="table-empty" id="messages-empty" hidden>
+                <p class="table-empty" id="messages-empty" hidden
+                   data-i18n="messages.empty">
                     Aucun message pour l'instant.
                 </p>
 
@@ -482,8 +504,8 @@
 
                 <div class="panel-head">
                     <div>
-                        <p class="panel-kicker">Sécurité</p>
-                        <h2>Mon compte</h2>
+                        <p class="panel-kicker" data-i18n="account.kicker">Sécurité</p>
+                        <h2 data-i18n="account.title">Mon compte</h2>
                     </div>
                 </div>
 
@@ -491,25 +513,27 @@
 
                     <div class="card">
                         <div class="card-head">
-                            <h3>Identifiant et mot de passe</h3>
+                            <h3 data-i18n="account.credentials">Identifiant et mot de passe</h3>
                             <span class="card-hint" id="acc-current-name"></span>
                         </div>
 
                         <form id="account-form" class="stack-form">
 
                             <label class="field">
-                                <span>Nouvel identifiant</span>
+                                <span data-i18n="account.newUsername">Nouvel identifiant</span>
                                 <input type="text" id="acc-username"
                                        autocomplete="username" maxlength="150">
                             </label>
 
                             <label class="field">
-                                <span>Mot de passe actuel *</span>
+                                <span data-i18n="account.currentPassword">Mot de passe actuel *</span>
                                 <span class="pw-wrap">
                                     <input type="password" id="acc-current"
                                            autocomplete="current-password" required>
                                     <button type="button" class="pw-toggle"
                                             data-pw-toggle="acc-current"
+                                            data-i18n-aria="common.showPw"
+                                            data-i18n-title="common.showPw"
                                             aria-label="Afficher le mot de passe"
                                             aria-pressed="false"
                                             title="Afficher le mot de passe">
@@ -534,13 +558,15 @@
                             </label>
 
                             <label class="field">
-                                <span>Nouveau mot de passe — 8 caractères minimum,
+                                <span data-i18n="account.newPassword">Nouveau mot de passe — 8 caractères minimum,
                                       laisser vide pour ne pas le changer</span>
                                 <span class="pw-wrap">
                                     <input type="password" id="acc-new"
                                            autocomplete="new-password">
                                     <button type="button" class="pw-toggle"
                                             data-pw-toggle="acc-new"
+                                            data-i18n-aria="common.showPw"
+                                            data-i18n-title="common.showPw"
                                             aria-label="Afficher le mot de passe"
                                             aria-pressed="false"
                                             title="Afficher le mot de passe">
@@ -569,7 +595,7 @@
 
                             <div class="btn-row">
                                 <button type="submit" class="btn btn-primary btn-sm"
-                                        id="account-save">
+                                        id="account-save" data-i18n="common.save">
                                     Enregistrer
                                 </button>
                             </div>
@@ -578,18 +604,18 @@
                     </div>
 
                     <div class="card">
-                        <div class="card-head"><h3>Comment ça marche</h3></div>
+                        <div class="card-head"><h3 data-i18n="account.howTitle">Comment ça marche</h3></div>
                         <ul class="log-list">
-                            <li>Le <strong>mot de passe actuel</strong> est toujours
+                            <li data-i18n-html="account.rule1">Le <strong>mot de passe actuel</strong> est toujours
                                 demandé : une session ouverte ne suffit pas pour
                                 modifier le compte.</li>
-                            <li>Vous restez connecté après modification.</li>
-                            <li>Un identifiant déjà pris par un autre compte est
+                            <li data-i18n="account.rule2">Vous restez connecté après modification.</li>
+                            <li data-i18n="account.rule3">Un identifiant déjà pris par un autre compte est
                                 refusé.</li>
-                            <li>Le nouveau mot de passe doit être différent de
+                            <li data-i18n="account.rule4">Le nouveau mot de passe doit être différent de
                                 l'actuel et contenir au moins 8 caractères.</li>
                         </ul>
-                        <p class="hint">
+                        <p class="hint" data-i18n="account.hint">
                             Ces identifiants servent uniquement à cet espace privé.
                             Ils ne sont jamais affichés sur le site public.
                         </p>
@@ -614,8 +640,9 @@
          aria-labelledby="project-modal-title">
 
         <div class="modal-head">
-            <h2 id="project-modal-title">Nouveau projet</h2>
+            <h2 id="project-modal-title" data-i18n="projects.newTitle">Nouveau projet</h2>
             <button class="icon-btn" type="button" data-close
+                    data-i18n-aria="common.close"
                     aria-label="Fermer">✕</button>
         </div>
 
@@ -625,12 +652,12 @@
 
             <div class="grid-2">
                 <label class="field">
-                    <span>Titre *</span>
+                    <span data-i18n="modal.title">Titre *</span>
                     <input type="text" id="p-title" required maxlength="200">
                 </label>
 
                 <label class="field">
-                    <span>Catégorie</span>
+                    <span data-i18n="modal.category">Catégorie</span>
                     <input type="text" id="p-category" maxlength="80"
                            placeholder="Web, Mobile, Full Stack…">
                 </label>
@@ -638,62 +665,62 @@
 
             <div class="grid-2">
                 <label class="field">
-                    <span>Icône (emoji)</span>
+                    <span data-i18n="modal.icon">Icône (emoji)</span>
                     <input type="text" id="p-icon" maxlength="12" placeholder="🚀">
                 </label>
 
                 <label class="field">
-                    <span>Ordre d'affichage</span>
+                    <span data-i18n="modal.order">Ordre d'affichage</span>
                     <input type="number" id="p-order" value="0" step="1">
                 </label>
             </div>
 
             <label class="field">
-                <span>Accroche — français</span>
+                <span data-i18n="modal.summary">Accroche — français</span>
                 <input type="text" id="p-summary" maxlength="255">
             </label>
 
             <label class="field">
-                <span>Accroche — anglais</span>
+                <span data-i18n="modal.summaryEn">Accroche — anglais</span>
                 <input type="text" id="p-summary-en" maxlength="255">
             </label>
 
             <label class="field">
-                <span>Description — français</span>
+                <span data-i18n="modal.description">Description — français</span>
                 <textarea id="p-description" rows="4"></textarea>
             </label>
 
             <label class="field">
-                <span>Description — anglais</span>
+                <span data-i18n="modal.descriptionEn">Description — anglais</span>
                 <textarea id="p-description-en" rows="4"></textarea>
             </label>
 
             <label class="field">
-                <span>Technologies (séparées par des virgules)</span>
+                <span data-i18n="modal.technologies">Technologies (séparées par des virgules)</span>
                 <input type="text" id="p-technologies"
                        placeholder="Django, PostgreSQL, Docker">
             </label>
 
             <div class="grid-2">
                 <label class="field">
-                    <span>Lien du projet</span>
+                    <span data-i18n="modal.website">Lien du projet</span>
                     <input type="url" id="p-website" placeholder="https://…">
                 </label>
 
                 <label class="field">
-                    <span>Dépôt GitHub</span>
+                    <span data-i18n="modal.repo">Dépôt GitHub</span>
                     <input type="url" id="p-repo" placeholder="https://github.com/…">
                 </label>
             </div>
 
             <div class="grid-2">
                 <label class="field">
-                    <span>Visuel (JPG, PNG, WEBP, GIF)</span>
+                    <span data-i18n="modal.image">Visuel (JPG, PNG, WEBP, GIF)</span>
                     <input type="file" id="p-image" accept="image/*">
                 </label>
 
                 <label class="field">
-                    <span>Maquette (image)</span>
+                    <span data-i18n="modal.mockup">Maquette (image)</span>
                     <input type="file" id="p-mockup" accept="image/*">
                 </label>
             </div>
@@ -703,12 +730,12 @@
             <div class="check-row">
                 <label class="check">
                     <input type="checkbox" id="p-published" checked>
-                    <span>Publié sur le site</span>
+                    <span data-i18n="modal.published">Publié sur le site</span>
                 </label>
 
                 <label class="check">
                     <input type="checkbox" id="p-featured">
-                    <span>Mettre en vedette</span>
+                    <span data-i18n="modal.featured">Mettre en vedette</span>
                 </label>
             </div>
 
@@ -716,11 +743,12 @@
             <p class="form-ok" id="project-ok" role="status" hidden></p>
 
             <div class="modal-foot">
-                <button type="button" class="btn btn-ghost btn-sm" data-close>
+                <button type="button" class="btn btn-ghost btn-sm" data-close
+                        data-i18n="common.cancel">
                     Annuler
                 </button>
                 <button type="submit" class="btn btn-primary btn-sm"
-                        id="project-save-btn">
+                        id="project-save-btn" data-i18n="common.save">
                     Enregistrer
                 </button>
             </div>
@@ -733,6 +761,6 @@
 <!-- Bandeau de notifications -->
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="js/admin.js?v=20261120g"></script>
+<script src="js/admin.js?v=20261120h"></script>
 </body>
 </html>
