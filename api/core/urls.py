@@ -32,6 +32,11 @@ urlpatterns = [
     # --- Back-office : projets -----------------------------------------
     path("admin/projects/", views.admin_projects),
     path("admin/projects/<int:pk>/", views.admin_project_detail),
+    path("admin/projects/<int:pk>/photos/", views.admin_project_photos),
+    path(
+        "admin/projects/<int:pk>/photos/<int:photo_id>/",
+        views.admin_project_photo_detail,
+    ),
 
     # --- Back-office : compte (identifiant / mot de passe) --------------
     path("admin/account/", views.admin_account),

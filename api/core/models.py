@@ -129,11 +129,41 @@ class Project(models.Model):
             "repo_url": self.repo_url,
             "image": self.image.url if self.image else None,
             "mockup": self.mockup.url if self.mockup else None,
+            "photos": [photo.to_dict() for photo in self.photos.all()],
             "is_published": self.is_published,
             "is_featured": self.is_featured,
             "order": self.order,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class ProjectPhoto(models.Model):
+    """Photo supplementaire d'un projet : galerie multi-photos."""
+
+    project = models.ForeignKey(
+        Project,
+        related_name="photos",
+        on_delete=models.CASCADE,
+        verbose_name="Projet",
+    )
+    image = models.ImageField("Photo", upload_to="projects/photos/")
+    order = models.IntegerField("Ordre", default=0)
+    created_at = models.DateTimeField("Ajoutee le", auto_now_add=True)
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Photo du projet"
+        verbose_name_plural = "Photos du projet"
+
+    def __str__(self):
+        return f"Photo {self.pk} — {self.project.title}"
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "url": self.image.url if self.image else None,
+            "order": self.order,
         }
 
 

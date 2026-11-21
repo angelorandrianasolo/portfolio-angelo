@@ -27,7 +27,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
-from .models import ContactMessage, CvDownload, Profile, Project, Visit
+from .models import ContactMessage, CvDownload, Profile, Project, ProjectPhoto, Visit
 
 # ---------------------------------------------------------------------------
 # Utilitaires
@@ -647,6 +647,9 @@ def admin_project_detail(request, pk: int):
         return JsonResponse(project.to_dict())
 
     if request.method == "DELETE":
+        # Les fichiers des photos doivent etre supprimes avant la cascade.
+        for photo in project.photos.all():
+            photo.image.delete(save=False)
         for field in ("image", "mockup"):
             getattr(project, field).delete(save=False)
         project.delete()
@@ -669,6 +672,69 @@ def admin_project_detail(request, pk: int):
     attach_files(project, files)
 
     return JsonResponse(project.to_dict())
+
+
+@admin_required
+@require_http_methods(["GET", "POST"])
+def admin_project_photos(request, pk: int):
+    """Galerie multi-photos d'un projet.
+
+    GET  : liste des photos.
+    POST : ajout (champ « photos », un ou plusieurs fichiers).
+           Un fichier par requete garde le corps sous la limite Nginx.
+    """
+    project = get_object_or_404(Project, pk=pk)
+
+    if request.method == "GET":
+        return JsonResponse(
+            {"results": [photo.to_dict() for photo in project.photos.all()]}
+        )
+
+    uploads = request.FILES.getlist("photos") or request.FILES.getlist("photo")
+    if not uploads:
+        return bad_request("Aucune photo recue.")
+
+    added, errors = [], []
+    for upload in uploads:
+        error = validate_upload(upload, ALLOWED_IMAGE_EXT, "Photo")
+        if error:
+            errors.append(error)
+            continue
+        photo = ProjectPhoto(
+            project=project,
+            image=upload,
+            order=project.photos.count(),
+        )
+        photo.save()
+        added.append(photo.to_dict())
+
+    if not added:
+        return bad_request(" | ".join(errors))
+
+    return JsonResponse(
+        {
+            "added": added,
+            "errors": errors,
+            "photos": [photo.to_dict() for photo in project.photos.all()],
+        },
+        status=201,
+    )
+
+
+@admin_required
+@require_http_methods(["DELETE"])
+def admin_project_photo_detail(request, pk: int, photo_id: int):
+    """Supprime une photo de la galerie (fichier compris)."""
+    project = get_object_or_404(Project, pk=pk)
+    photo = get_object_or_404(ProjectPhoto, pk=photo_id, project=project)
+    photo.image.delete(save=False)
+    photo.delete()
+    return JsonResponse(
+        {
+            "detail": "Photo supprimee.",
+            "photos": [p.to_dict() for p in project.photos.all()],
+        }
+    )
 
 
 def _apply_fields(project: Project, fields, files) -> None:
