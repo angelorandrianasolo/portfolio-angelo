@@ -882,7 +882,29 @@ function truncate(value, length) {
     return text.length > length ? text.slice(0, length - 1) + "…" : text;
 }
 
-$("#visits-limit").addEventListener("change", loadVisits);
+// Limite des tableaux : le choix est memorise, il ne revient plus au
+// defaut « 100 » a chaque rechargement.
+function rememberLimit(key, select) {
+    try {
+        localStorage.setItem(key, select.value);
+    } catch (error) {}
+}
+
+function restoreLimit(key, select) {
+    try {
+        const saved = localStorage.getItem(key);
+        const existe = Array.from(select.options)
+            .some(option => option.value === saved);
+        if (saved && existe) select.value = saved;
+    } catch (error) {}
+}
+
+restoreLimit("admin-visits-limit", $("#visits-limit"));
+
+$("#visits-limit").addEventListener("change", event => {
+    rememberLimit("admin-visits-limit", event.currentTarget);
+    loadVisits();
+});
 $("#refresh-visits").addEventListener("click", loadVisits);
 
 
@@ -1151,7 +1173,12 @@ $("#message-list").addEventListener("click", async event => {
     }
 });
 
-$("#messages-limit").addEventListener("change", loadMessages);
+restoreLimit("admin-messages-limit", $("#messages-limit"));
+
+$("#messages-limit").addEventListener("change", event => {
+    rememberLimit("admin-messages-limit", event.currentTarget);
+    loadMessages();
+});
 $("#refresh-messages").addEventListener("click", loadMessages);
 
 // Adresse qui recoit les messages (modifiable sans toucher au code).
@@ -1475,7 +1502,9 @@ function openProjectModal(project) {
         ? (project.technologies || []).join(", ") : "";
     $("#p-website").value = project ? (project.website_url || "") : "";
     $("#p-repo").value = project ? (project.repo_url || "") : "";
-    $("#p-published").checked = project ? !!project.is_published : true;
+    // Aucune case n'est cochee par defaut : on ouvre toujours neutre,
+    // puis on recupere l'etat reel du projet en modification.
+    $("#p-published").checked = project ? !!project.is_published : false;
     $("#p-featured").checked = project ? !!project.is_featured : false;
 
     // Visuels existants
