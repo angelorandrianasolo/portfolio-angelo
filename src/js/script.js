@@ -180,7 +180,8 @@ const translations = {
         "footer.social": "Réseaux",
         "footer.rights": "Tous droits réservés.",
         "footer.admin": "Espace administration",
-        "footer.stack": "Propulsé par une API REST en Django"
+        "footer.stack": "Propulsé par une API REST en Django",
+        "footer.privacy": "Confidentialité"
     },
 
     en: {
@@ -336,7 +337,8 @@ const translations = {
         "footer.social": "Social",
         "footer.rights": "All rights reserved.",
         "footer.admin": "Administration panel",
-        "footer.stack": "Powered by a Django REST API"
+        "footer.stack": "Powered by a Django REST API",
+        "footer.privacy": "Privacy policy"
     }
 };
 

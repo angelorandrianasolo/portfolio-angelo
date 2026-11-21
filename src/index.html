@@ -24,23 +24,7 @@
     <link rel="stylesheet" href="css/style.css?v=20261121a">
 
     <!-- Applique le thème avant le premier rendu pour éviter le flash blanc -->
-    <script>
-        (function () {
-            document.documentElement.classList.add("js");
-
-            var theme = null;
-            try { theme = localStorage.getItem("portfolio-theme"); } catch (error) {}
-
-            if (!theme) {
-                theme = window.matchMedia("(prefers-color-scheme: dark)").matches
-                    ? "dark" : "light";
-            }
-
-            if (theme === "dark") {
-                document.documentElement.classList.add("dark-theme");
-            }
-        })();
-    </script>
+    <script src="js/theme-init.js?v=20261121b"></script>
 </head>
 
 <body>
@@ -814,6 +798,7 @@
                     <li><a href="#projets" data-i18n="nav.projects">Projets</a></li>
                     <li><a href="#github" data-i18n="nav.github">GitHub</a></li>
                     <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
+                    <li><a href="confidentialite.html" data-i18n="footer.privacy">Confidentialité</a></li>
                 </ul>
             </nav>
 
@@ -890,7 +875,7 @@
         </svg>
     </button>
 
-    <script src="js/script.js?v=20261120f"></script>
+    <script src="js/script.js?v=20261121b"></script>
 
 </body>
 </html>

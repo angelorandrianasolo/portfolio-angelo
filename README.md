@@ -260,18 +260,137 @@ python tests/test_nginx.py
 
 ## Sécurité
 
-- `.env`, `api/data/`, `api/media/`, `api/staticfiles/` ignorés par git
+### Protections en place
+
+**Secrets et accès**
+- `.env`, `api/data/`, `api/media/`, `api/staticfiles/`, `backups/` ignorés
+  par git ; `.env.example` documente chaque variable sans contenir de secret
 - Aucun mot de passe dans le dépôt ; le compte est créé par `ensure_admin`
 - **`DJANGO_SECRET_KEY` obligatoire en production** : Django s'arrête avec un
   message explicite si la clé est absente ou encore celle du dépôt, empêchant
   un déploiement bâclé qui laisserait des sessions forgables
-- Téléversements validés (extension **et** signature de fichier), taille ≤ 20 Mo
+- **Anti force brute** : au-delà de `LOGIN_MAX_ATTEMPTS` (5) tentatives
+  échouées en `LOGIN_BLOCK_MINUTES` (15 min) par IP, la connexion répond
+  `429` — chaque échec et chaque réussite sont **journalisés**
+  (`docker compose logs api`)
+- **Déconnexion automatique** : une session admin inactive plus de
+  `ADMIN_IDLE_SECONDS` (30 min) est fermée (`401` → écran de connexion)
+- **Cookies durcis** : `SESSION_COOKIE_HTTPONLY` (jamais lisible en JS),
+  `SameSite=Lax` (sessions + CSRF). `SESSION_COOKIE_SECURE` /
+  `CSRF_COOKIE_SECURE` à `1` derrière HTTPS
+  *(le cookie CSRF reste lisible en JS volontairement : le back-office lit
+  `csrftoken` pour construire l'en-tête `X-CSRFToken`)*
+- URL du back-office : `robots.txt` (`Disallow: /admin.html` + `/api/`),
+  `X-Robots-Tag: noindex, nofollow` et balise `<meta name="robots">`
+- **Conteneurs sans privilège** : l'API écrit en root uniquement le temps du
+  `chown` puis redescend en `appuser` (setpriv) ; Nginx tourne en
+  `USER nginx` sur le port 8080 (aucun privilège)
+
+**En-têtes HTTP (Nginx + Django)**
+- `Content-Security-Policy` : scripts limités à `'self'` (le thème est
+  externalisé dans `js/theme-init.js`, **aucun script inline**), polices
+  Google autorisées, `object-src 'none'`, `frame-ancestors 'self'`
+- `Permissions-Policy` : caméra, micro, géoloc, paiement, USB désactivés
+- `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`
+  (+ `Referrer-Policy: no-referrer` sur `/admin.html`), `server_tokens off`
+- `Strict-Transport-Security` prêt à activer : `SECURE_HSTS_SECONDS=31536000`
+  (voir « Passer en HTTPS »)
+
+**Données personnelles (RGPD)**
+- **IP anonymisées** à la source : les deux derniers octets (IPv4) ou le
+  suffixe (IPv6) sont supprimés avant tout enregistrement — visites, messages
+  de contact et logs de connexion ne contiennent jamais l'adresse exacte
+  (l'IP anonymisée reste la clé de plafonnement anti-spam)
+- Page **`confidentialite.html`** (lien « Confidentialité » du pied de page) :
+  données collectées, finalités, conservation, destinataires, droits
+- Formulaires : champ piége à robots, validation stricte serveur,
+  plafond `CONTACT_MAX_PER_HOUR` par IP et par heure, CSRF obligatoire
+- Téléversements validés (extension **et** signature Pillow), taille ≤ 20 Mo
 - Échappement HTML de toute donnée injectée, URLs assainies côté client
-- Formulaire de contact : champ piége à robots, validation stricte serveur,
-  plafond par IP et par heure, CSRF obligatoire — et le mot de passe SMTP
-  ne quitte jamais `.env`
-- En-têtes : `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`
+- Le mot de passe SMTP ne quitte jamais `.env`
+
+**Maintenance**
+- **Dependabot** (`.github/dependabot.yml`) : alertes hebdomadaires sur les
+  dépendances Python, les images Docker et les actions GitHub
+- **Sauvegardes** : `python tools/backup.py` (base SQLite copiée avec l'API
+  cohérente + médias, dans `backups/`, 7 conservées) — à lancer chaque semaine
+- **Audit de dépendances** : `pip-audit -r requirements.txt`
+  (voir « Contrôle des dépendances »)
 - Assets non hachés servis en `Cache-Control: no-cache` : le navigateur
   revalide via ETag/304, donc une mise à jour du code est prise en compte
   immédiatement (au lieu d'un ancien `admin.js` conservé 30 jours)
-- Passer `SESSION_COOKIE_SECURE` et `CSRF_COOKIE_SECURE` à `1` derrière HTTPS
+
+### Passer en HTTPS (Let's Encrypt)
+
+En local, tout tourne en `http://` : le mot de passe de connexion circule
+en clair sur le réseau. **Avant la mise en ligne publique**, installer un
+certificat :
+
+```bash
+# 1. Un domaine réel pointé vers le serveur (ex. angelo.dev)
+
+# 2. Certificat en mode webroot (conteneur Certbot partagé avec Nginx)
+docker volume create acme_data
+docker run --rm -v acme_data:/var/www/acme -v letsencrypt:/etc/letsencrypt \
+  certbot/certbot certonly --webroot -w /var/www/acme \
+  -d angelo.dev --agree-tos -m votre@email --non-interactive
+
+# 3. Copier les certificats là où Nginx les attend
+mkdir -p certs
+docker cp letsencrypt:/etc/letsencrypt/live/angelo.dev/fullchain.pem certs/
+docker cp letsencrypt:/etc/letsencrypt/live/angelo.dev/privkey.pem  certs/
+
+# 4. Basculer Nginx sur HTTPS (après avoir remplacé ton-domaine.com)
+cp nginx.https.conf.example nginx.conf
+#    + monter ./certs dans docker-compose.yml (voir l'en-tête du fichier)
+
+# 5. Activer HSTS côté Django
+#    dans .env :  SECURE_HSTS_SECONDS=31536000
+#                SESSION_COOKIE_SECURE=1
+#                CSRF_COOKIE_SECURE=1
+#                DJANGO_CSRF_TRUSTED_ORIGINS=https://angelo.dev
+
+docker compose up -d --build
+```
+
+Puis **renouvellement** : refaire l'étape 2 puis
+`docker compose restart web` (certificats valables 90 jours).
+
+### Contrôle des dépendances (pip-audit)
+
+```bash
+pip install pip-audit
+pip-audit -r requirements.txt
+```
+
+Vérifie Django, Pillow et Gunicorn contre la base de failles publiées
+(CVE). Dependabot fait la même veille automatiquement une fois le dépôt
+poussé sur GitHub.
+
+### Rotation du mot de passe d'application Gmail
+
+Le mot de passe d'application (16 caractères) qui permet l'envoi des
+e-mails du formulaire de contact doit être **renouvelé tous les mois ou
+deux** :
+
+```bash
+# 1. Révoquer l'ancien : https://myaccount.google.com/apppasswords
+# 2. En générer un nouveau (nom « portfolio »)
+# 3. Le coller dans .env → EMAIL_HOST_PASSWORD
+docker compose up -d api
+```
+
+Si les e-mails s'arrêtent, c'est presque toujours ce mot de passe qui a
+changé côté Google (voir aussi : validation en 2 étapes requise).
+
+### Variables de sécurité (`.env`)
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `LOGIN_MAX_ATTEMPTS` | `5` | Tentatives échouées avant blocage connexion |
+| `LOGIN_BLOCK_MINUTES` | `15` | Durée du blocage (minutes) |
+| `ADMIN_IDLE_SECONDS` | `1800` | Déconnexion admin après inactivité |
+| `CONTACT_MAX_PER_HOUR` | `5` | Messages de contact max / IP / heure |
+| `SESSION_COOKIE_SECURE` | `0` | `1` uniquement derrière HTTPS |
+| `CSRF_COOKIE_SECURE` | `0` | `1` uniquement derrière HTTPS |
+| `SECURE_HSTS_SECONDS` | `0` | `31536000` une fois HTTPS installé |

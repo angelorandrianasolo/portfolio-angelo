@@ -17,20 +17,7 @@
 
     <link rel="stylesheet" href="css/admin.css?v=20261121a">
 
-    <script>
-        (function () {
-            document.documentElement.classList.add("js");
-            var theme = null;
-            try { theme = localStorage.getItem("portfolio-theme"); } catch (e) {}
-            if (!theme) {
-                theme = window.matchMedia("(prefers-color-scheme: dark)").matches
-                    ? "dark" : "light";
-            }
-            if (theme === "dark") {
-                document.documentElement.classList.add("dark-theme");
-            }
-        })();
-    </script>
+    <script src="js/theme-init.js?v=20261121b"></script>
 </head>
 
 <body>

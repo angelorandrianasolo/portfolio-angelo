@@ -1,0 +1,23 @@
+# =========================================================
+# Dependabot — mises à jour automatiques des dépendances
+# (alertes et PR quand une faille est publiée dans une
+#  dépendance Python ou une image Docker du projet)
+# =========================================================
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /admin.html
+Disallow: /api/
 
 # Ajoute ton URL réelle ici une fois le domaine déployé :
 # Sitemap: https://ton-domaine.com/sitemap.xml
