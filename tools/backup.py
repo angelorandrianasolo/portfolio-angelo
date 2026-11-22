@@ -72,27 +72,34 @@ def make_backup() -> Path:
     target = BACKUP_ROOT / stamp
     target.mkdir(parents=True, exist_ok=False)
 
-    print("1/4 Copie SQLite cohérente dans le conteneur…")
-    _run(["docker", "compose", "exec", "-T", "api", "python", "-c",
-          _SQLITE_SNIPPET])
+    try:
+        print("1/4 Copie SQLite cohérente dans le conteneur…")
+        _run(["docker", "compose", "exec", "-T", "api", "python", "-c",
+              _SQLITE_SNIPPET])
 
-    print("2/4 Récupération de la base…")
-    _run(["docker", "compose", "cp",
-          f"{SERVICE}:/tmp/db-backup.sqlite3",
-          str(target / "db.sqlite3")])
+        print("2/4 Récupération de la base…")
+        _run(["docker", "compose", "cp",
+              f"{SERVICE}:/tmp/db-backup.sqlite3",
+              str(target / "db.sqlite3")])
 
-    print("3/4 Récupération des médias (photo, CV, visuels)…")
-    _run(["docker", "compose", "cp",
-          f"{SERVICE}:/media",
-          str(target / "media")])
+        print("3/4 Récupération des médias (photo, CV, visuels)…")
+        _run(["docker", "compose", "cp",
+              f"{SERVICE}:/media",
+              str(target / "media")])
 
-    print("4/4 Nettoyage du conteneur…")
-    _run(["docker", "compose", "exec", "-T", "api", "rm", "-f",
-          "/tmp/db-backup.sqlite3"])
+        print("4/4 Nettoyage du conteneur…")
+        _run(["docker", "compose", "exec", "-T", "api", "rm", "-f",
+              "/tmp/db-backup.sqlite3"])
 
-    db = target / "db.sqlite3"
-    if not db.exists() or db.stat().st_size == 0:
-        raise RuntimeError("La copie SQLite est vide ou absente.")
+        db = target / "db.sqlite3"
+        if not db.exists() or db.stat().st_size == 0:
+            raise RuntimeError("La copie SQLite est vide ou absente.")
+    except Exception:
+        # Pas de dossier vide en cas d'echec (Docker arrete, conteneur
+        # absent…) : backups/ ne contient que des sauvegardes utiles.
+        shutil.rmtree(target, ignore_errors=True)
+        raise
+
     print(f"✓ Sauvegarde créée : {target.relative_to(ROOT)} "
           f"({db.stat().st_size // 1024} Ko)")
     return target
