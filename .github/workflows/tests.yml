@@ -1,0 +1,51 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    env:
+      # Identifiants de CI uniquement (jamais les vrais) : nécessaires à
+      # ensure_admin (compte créé dans la base de test éphémère) et à la
+      # substitution ${...} du docker-compose.yml.
+      ADMIN_USERNAME: angelo
+      ADMIN_PASSWORD: ci-only-password-2026
+      DJANGO_SECRET_KEY: ci-only-secret-key-2026-not-a-real-one
+
+    steps:
+      - name: Vériger le code
+        uses: actions/checkout@v4
+
+      - name: Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Dépendances Python
+        run: pip install -r requirements.txt
+
+      - name: Construire et démarrer Docker (site + API)
+        run: |
+          docker compose up -d --build
+          for i in $(seq 1 60); do
+            s=$(docker inspect -f '{{.State.Health.Status}}' angelo-api 2>/dev/null || echo starting)
+            if [ "$s" = "healthy" ]; then
+              echo "API saine après ${i}×5 s"
+              break
+            fi
+            sleep 5
+          done
+          docker compose ps
+          docker inspect -f '{{.State.Health.Status}}' angelo-api | grep -q healthy
+
+      - name: Les 6 suites de tests (base vierge + Docker)
+        run: python tests/run_all.py
+
+      - name: Journal de l'API en cas d'échec
+        if: failure()
+        run: docker compose logs --tail 80 api

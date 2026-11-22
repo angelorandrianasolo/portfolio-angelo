@@ -207,7 +207,17 @@ python tests/test_contact.py          # indépendant du serveur
 python tests/test_csrf.py
 python tests/test_nginx.py
 # cibles modifiables : API_BASE=... / SITE_BASE=...
+
+# variante : les 6 suites d'un coup, dans le bon ordre (base vierge
+# locale puis Docker), avec bilan final
+python tests/run_all.py
 ```
+
+> **Intégration continue** : `.github/workflows/tests.yml` lance
+> `tests/run_all.py` à chaque push et chaque pull request sur GitHub
+> Actions (Python 3.13 + Docker Compose). Les identifiants injectés
+> sont propres à la CI — aucun secret réel dans le dépôt. Le workflow
+> ne devient actif qu'après le premier `git push`.
 
 > **Aucun mot de passe n'est versionné.** `tests/_creds.py` lit
 > `ADMIN_USERNAME` / `ADMIN_PASSWORD` depuis l'environnement ou `.env` ;
@@ -313,7 +323,10 @@ python tests/test_nginx.py
 - **Dependabot** (`.github/dependabot.yml`) : alertes hebdomadaires sur les
   dépendances Python, les images Docker et les actions GitHub
 - **Sauvegardes** : `python tools/backup.py` (base SQLite copiée avec l'API
-  cohérente + médias, dans `backups/`, 7 conservées) — à lancer chaque semaine
+  cohérente + médias, dans `backups/`, 7 conservées). **Planifié** sur le
+  poste Windows : tâche « Portfolio Angelo - sauvegarde quotidienne »
+  (tous les jours à 20 h, via `tools/backup-task.cmd`, journal dans
+  `backups/_task.log` ; en cas d'échec, aucun dossier vide n'est laissé)
 - **Audit de dépendances** : `pip-audit -r requirements.txt`
   (voir « Contrôle des dépendances »)
 - Assets non hachés servis en `Cache-Control: no-cache` : le navigateur
