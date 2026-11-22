@@ -983,9 +983,11 @@ function formatRepoDate(iso) {
 
 function repoCard(repo) {
     const url = safeUrl(repo.url);
+    // Depot sans description : pas de paragraphe du tout (et non le texte
+    // de l'état vide « github.empty », reserve au groupe entier).
     const description = repo.description
-        ? escapeHtml(repo.description)
-        : escapeHtml(t("github.empty"));
+        ? `<p class="repo-desc">${escapeHtml(repo.description)}</p>`
+        : "";
 
     const language = repo.language
         ? `<span><i class="repo-dot" aria-hidden="true"></i>${escapeHtml(repo.language)}</span>`
@@ -1005,7 +1007,7 @@ function repoCard(repo) {
         <div class="repo-head">
             <span class="repo-name">${escapeHtml(repo.name)}</span>
         </div>
-        <p class="repo-desc">${description}</p>
+        ${description}
         <div class="repo-meta">${language}${stars}${updatedBlock}</div>
         ${REPO_ARROW}`;
 
@@ -1029,17 +1031,22 @@ async function loadGithub() {
         const payload = await api("/api/github/repos/");
         const repos = (payload && payload.results) || [];
 
-        if (repos.length === 0) {
+        if (payload && payload.detail) {
+            // API GitHub en panne : message explicite, reponse 200,
+            // donc aucune erreur console.
+            githubGrid.innerHTML = stateBlock(
+                "github.unavailableTitle", "github.unavailable"
+            );
+            if (statRepos) statRepos.textContent = "—";
+        } else if (repos.length === 0) {
             githubGrid.innerHTML = stateBlock(
                 "github.emptyTitle", "github.empty"
             );
+            if (statRepos) statRepos.textContent = String(repos.length);
         } else {
             githubGrid.innerHTML = repos.map(repoCard).join("");
             observeReveals(githubGrid);
-        }
-
-        if (statRepos) {
-            statRepos.textContent = String(repos.length);
+            if (statRepos) statRepos.textContent = String(repos.length);
         }
 
     } catch (error) {

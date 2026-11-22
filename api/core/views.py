@@ -433,9 +433,11 @@ def github_repos(request):
         with urlrequest.urlopen(req, timeout=8) as resp:
             raw = json.loads(resp.read().decode("utf-8"))
     except (urlerror.URLError, TimeoutError, json.JSONDecodeError, OSError):
+        # Reponse 200 avec « detail » : le front affiche « GitHub
+        # indisponible » sans erreur console, et les tests restent
+        # verte meme quand l'API GitHub est en panne.
         return JsonResponse(
-            {"cached": False, "results": [], "detail": "GitHub indisponible."},
-            status=503,
+            {"cached": False, "results": [], "detail": "GitHub indisponible."}
         )
 
     results = [

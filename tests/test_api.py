@@ -178,7 +178,11 @@ check("supprimer CV absent", code == 200)
 # --- GitHub -----------------------------------------------------------
 try:
     code, r = call("GET", "/github/repos/")
-    if code == 200:
+    if r.get("detail"):
+        # Panne de l'API GitHub : service externe, on ne fait pas
+        # echouer la suite pour autant (le front affiche un message).
+        print(f"[--] github: indisponible ({r.get('detail')})")
+    elif code == 200:
         names = [x["name"] for x in r["results"]]
         check("github repos", len(r["results"]) > 0, f"-> {names[:4]}")
         check("github sans forks", all(not x["is_fork"] for x in r["results"]))
