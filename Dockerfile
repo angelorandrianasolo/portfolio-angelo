@@ -1,7 +1,7 @@
 # =========================================================
 # Site public — Nginx servi en lecture seule, SANS privilège
 # =========================================================
-FROM nginx:1.27-alpine
+FROM nginx:1.29-alpine
 
 # Configuration principale adaptée : pid + temporaires dans /tmp,
 # indispensables une fois la ligne USER nginx ajoutée plus bas.
