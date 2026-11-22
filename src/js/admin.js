@@ -91,6 +91,8 @@ const ADMIN_I18N = {
         "overview.cvAria": "Histogramme des téléchargements de CV par jour",
         "overview.cvEmpty": "Aucun téléchargement pour l'instant.",
         "overview.topPages": "Pages les plus visitées",
+        "pages.home": "Accueil",
+        "pages.privacy": "Confidentialité",
         "overview.noData": "Pas encore de données.",
 
         "visits.kicker": "Journal",
@@ -311,6 +313,8 @@ const ADMIN_I18N = {
         "overview.cvAria": "Histogram of daily CV downloads",
         "overview.cvEmpty": "No downloads yet.",
         "overview.topPages": "Most visited pages",
+        "pages.home": "Home",
+        "pages.privacy": "Privacy policy",
         "overview.noData": "No data yet.",
 
         "visits.kicker": "Log",
@@ -454,6 +458,21 @@ const ADMIN_I18N = {
 let currentLanguage = "fr";
 
 /** Traduit une clé ; {placeholders} remplacés par `vars`. */
+// Libelles humains pour les chemins de pages (suivi des visites) :
+// « / » devient « Accueil » ; un chemin inconnu reste tel quel.
+const PAGE_LABELS = {
+    "/": "pages.home",
+    "/index.html": "pages.home",
+    "/confidentialite.html": "pages.privacy"
+};
+
+function pageLabel(path) {
+    const raw = String(path || "");
+    const key = PAGE_LABELS[raw.split("?")[0]];
+    return key ? t(key) : raw;
+}
+
+
 function t(key, vars) {
     const dict = ADMIN_I18N[currentLanguage] || ADMIN_I18N.fr;
     let text = dict[key] !== undefined ? dict[key] : key;
@@ -822,7 +841,8 @@ async function loadOverview() {
                 const max = data.top_pages[0].total || 1;
                 list.innerHTML = data.top_pages.map(page => `
                     <li>
-                        <span class="label">${escapeHtml(page.path)}</span>
+                        <span class="label"
+                              title="${escapeHtml(page.path)}">${escapeHtml(pageLabel(page.path))}</span>
                         <span class="bar">
                             <i style="width: ${Math.round((page.total / max) * 100)}%"></i>
                         </span>
@@ -880,7 +900,7 @@ async function loadVisits() {
         body.innerHTML = data.results.map(visit => `
             <tr>
                 <td class="primary">${escapeHtml(formatDate(visit.created_at))}</td>
-                <td><code>${escapeHtml(visit.path)}</code></td>
+                <td><code title="${escapeHtml(visit.path)}">${escapeHtml(pageLabel(visit.path))}</code></td>
                 <td><code>${escapeHtml(visit.ip || "—")}</code></td>
                 <td>
                     ${visit.referrer
