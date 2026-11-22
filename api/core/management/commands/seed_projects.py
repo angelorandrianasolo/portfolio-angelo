@@ -13,8 +13,8 @@ PROJECTS = [
     {
         "title": "Meilleur-prix",
         "slug": "meilleur-prix",
-        "summary": "Comparateur de prix des produits dans les marchés de Madagascar.",
-        "summary_en": "Price comparison for products across Madagascar's markets.",
+        "summary": "Les prix varient d'un marché à l'autre à Madagascar : comparez les offres en un clic et achetez au meilleur prix.",
+        "summary_en": "Prices change from market to market in Madagascar: compare offers in one click and buy at the best price.",
         "description": (
             "Application de comparaison des prix qui répertorie les produits "
             "proposés dans les marchés malgaches et situe la meilleure offre "
@@ -35,8 +35,8 @@ PROJECTS = [
     {
         "title": "Tantsaha Connect",
         "slug": "tantsaha-connect",
-        "summary": "Assistant agricole : météo et conseils pour les agriculteurs.",
-        "summary_en": "Farm assistant: weather data and advice for farmers.",
+        "summary": "Manquer une saison coûte cher : Tantsaha donne aux agriculteurs malgaches la météo locale, le calendrier des travaux et des conseils au bon moment.",
+        "summary_en": "A missed season is costly: Tantsaha gives Malagasy farmers local weather, a work calendar and timely advice.",
         "description": (
             "Application mobile et web destinée à accompagner les "
             "agriculteurs malgaches : prévisions météorologiques locales, "
@@ -57,8 +57,8 @@ PROJECTS = [
     {
         "title": "Portfolio & API REST",
         "slug": "portfolio-api-rest",
-        "summary": "Site vitrine propulsé par une API REST en Django.",
-        "summary_en": "Portfolio site powered by a Django REST API.",
+        "summary": "Ce portfolio consomme sa propre API REST Django : un aperçu concret de mon architecture (MVC, Docker, tests automatisés).",
+        "summary_en": "This portfolio runs on its own Django REST API: a concrete look at my architecture (MVC, Docker, automated tests).",
         "description": (
             "Architecture MVC en Django : un back-office permet de gérer "
             "les projets, la photo de profil et le CV sans toucher au code, "
