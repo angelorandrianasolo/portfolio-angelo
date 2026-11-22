@@ -712,7 +712,7 @@ function projectGallery(project) {
 
     const photos = Array.isArray(project.photos) ? project.photos : [];
     photos.forEach(photo => {
-        const url = photo && safeUrl(photo.url);
+        const url = photo && safeUrl(photo.thumb || photo.url);
         if (url && !urls.includes(url)) urls.push(url);
     });
     return urls;
@@ -853,6 +853,18 @@ function ensureGalleryRoot() {
     root.addEventListener("click", event => {
         if (event.target === root) closeGallery();
     });
+
+    // Swipe tactile (mobile) : glisser a gauche = suivante.
+    let touchX = null;
+    root.addEventListener("touchstart", event => {
+        touchX = event.changedTouches[0].clientX;
+    }, { passive: true });
+    root.addEventListener("touchend", event => {
+        if (touchX === null) return;
+        const delta = event.changedTouches[0].clientX - touchX;
+        touchX = null;
+        if (Math.abs(delta) >= 45) stepGallery(delta < 0 ? 1 : -1);
+    }, { passive: true });
 
     galleryState.root = root;
     return root;

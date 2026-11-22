@@ -148,6 +148,11 @@ class ProjectPhoto(models.Model):
         verbose_name="Projet",
     )
     image = models.ImageField("Photo", upload_to="projects/photos/")
+    thumb = models.ImageField(
+        "Miniature", upload_to="projects/photos/thumbs/",
+        blank=True, null=True,
+        help_text="Version reduite (900 px) generee automatiquement.",
+    )
     order = models.IntegerField("Ordre", default=0)
     created_at = models.DateTimeField("Ajoutee le", auto_now_add=True)
 
@@ -163,6 +168,7 @@ class ProjectPhoto(models.Model):
         return {
             "id": self.id,
             "url": self.image.url if self.image else None,
+            "thumb": self.thumb.url if self.thumb else None,
             "order": self.order,
         }
 

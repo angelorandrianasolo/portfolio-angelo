@@ -29,6 +29,8 @@ from django.views.decorators.http import require_http_methods
 
 from .models import ContactMessage, CvDownload, Profile, Project, ProjectPhoto, Visit
 
+THUMB_MAX_EDGE = 900
+
 # ---------------------------------------------------------------------------
 # Utilitaires
 # ---------------------------------------------------------------------------
@@ -651,6 +653,7 @@ def admin_project_detail(request, pk: int):
     if request.method == "DELETE":
         # Les fichiers des photos doivent etre supprimes avant la cascade.
         for photo in project.photos.all():
+            photo.thumb.delete(save=False)
             photo.image.delete(save=False)
         for field in ("image", "mockup"):
             getattr(project, field).delete(save=False)
@@ -677,19 +680,33 @@ def admin_project_detail(request, pk: int):
 
 
 @admin_required
-@require_http_methods(["GET", "POST"])
+@require_http_methods(["GET", "POST", "PUT"])
 def admin_project_photos(request, pk: int):
     """Galerie multi-photos d'un projet.
 
     GET  : liste des photos.
     POST : ajout (champ « photos », un ou plusieurs fichiers).
            Un fichier par requete garde le corps sous la limite Nginx.
+    PUT  : nouvel ordre complet (« order » = liste d'identifiants).
     """
     project = get_object_or_404(Project, pk=pk)
 
     if request.method == "GET":
         return JsonResponse(
             {"results": [photo.to_dict() for photo in project.photos.all()]}
+        )
+
+    if request.method == "PUT":
+        ids = json_body(request).get("order") or []
+        photos = list(project.photos.all())
+        if sorted(ids) != sorted(photo.id for photo in photos):
+            return bad_request("Liste des photos incomplete.")
+        by_id = {photo.id: photo for photo in photos}
+        for index, photo_id in enumerate(ids):
+            by_id[photo_id].order = index
+        ProjectPhoto.objects.bulk_update(photos, ["order"])
+        return JsonResponse(
+            {"photos": [p.to_dict() for p in project.photos.all()]}
         )
 
     uploads = request.FILES.getlist("photos") or request.FILES.getlist("photo")
@@ -707,6 +724,7 @@ def admin_project_photos(request, pk: int):
             image=upload,
             order=project.photos.count(),
         )
+        _fill_thumb(photo)
         photo.save()
         added.append(photo.to_dict())
 
@@ -723,12 +741,54 @@ def admin_project_photos(request, pk: int):
     )
 
 
+def _fill_thumb(photo: ProjectPhoto) -> None:
+    """Genere la miniature (900 px) a cote de l'original.
+
+    Les GIF sont laisses intacts (la miniature figerait l'animation),
+    tout echec est ignore : la photo reste utilisable en taille reelle.
+    """
+    import io
+
+    from django.core.files.base import ContentFile
+
+    upload = photo.image
+    name = (upload.name or "").lower()
+    if name.endswith(".gif"):
+        return
+
+    formats = {"jpg": "JPEG", "jpeg": "JPEG", "png": "PNG", "webp": "WEBP"}
+    fmt = formats.get(os.path.splitext(name)[1].lstrip("."))
+    if not fmt:
+        return
+
+    try:
+        from PIL import Image
+
+        upload.seek(0)
+        image = Image.open(upload)
+        image.thumbnail((THUMB_MAX_EDGE, THUMB_MAX_EDGE))
+        if fmt == "JPEG" and image.mode in ("RGBA", "P", "LA"):
+            image = image.convert("RGB")
+        buffer = io.BytesIO()
+        image.save(buffer, format=fmt,
+                   **({"quality": 82} if fmt == "JPEG" else {}))
+    except Exception:
+        return
+    finally:
+        upload.seek(0)
+
+    thumb_name = os.path.splitext(os.path.basename(upload.name))[0] + "_thumb"
+    photo.thumb.save(thumb_name + os.path.splitext(upload.name)[1],
+                     ContentFile(buffer.getvalue()), save=False)
+
+
 @admin_required
 @require_http_methods(["DELETE"])
 def admin_project_photo_detail(request, pk: int, photo_id: int):
-    """Supprime une photo de la galerie (fichier compris)."""
+    """Supprime une photo de la galerie (fichier et miniature compris)."""
     project = get_object_or_404(Project, pk=pk)
     photo = get_object_or_404(ProjectPhoto, pk=photo_id, project=project)
+    photo.thumb.delete(save=False)
     photo.image.delete(save=False)
     photo.delete()
     return JsonResponse(

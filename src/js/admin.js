@@ -223,6 +223,9 @@ const ADMIN_I18N = {
         "modal.photosPending": "Photos en attente : elles seront ajoutées à la création du projet.",
         "modal.photoDeleted": "Photo supprimée",
         "modal.photoError": "Galerie : opération impossible",
+        "modal.photoLeft": "Déplacer avant",
+        "modal.photoRight": "Déplacer après",
+        "modal.photoReordered": "Ordre des photos mis à jour",
         "modal.published": "Publié sur le site",
         "modal.featured": "Mettre en vedette"
     },
@@ -440,6 +443,9 @@ const ADMIN_I18N = {
         "modal.photosPending": "Photos pending: they will be added when the project is created.",
         "modal.photoDeleted": "Photo deleted",
         "modal.photoError": "Gallery: operation failed",
+        "modal.photoLeft": "Move before",
+        "modal.photoRight": "Move after",
+        "modal.photoReordered": "Photo order updated",
         "modal.published": "Published on the site",
         "modal.featured": "Feature on homepage"
     }
@@ -1367,7 +1373,7 @@ async function loadProjects() {
 
         container.innerHTML = projectsCache.map((project, index) => {
             const firstPhoto = Array.isArray(project.photos) && project.photos.length
-                ? project.photos[0].url : null;
+                ? (project.photos[0].thumb || project.photos[0].url) : null;
             const image = safeUrl(project.image) || safeUrl(firstPhoto);
             const thumb = image
                 ? `<img src="${escapeHtml(image)}" alt="">`
@@ -1567,12 +1573,18 @@ function renderPhotosGrid() {
 
     const items = [];
 
-    modalPhotos.forEach(photo => {
-        const url = safeUrl(photo.url);
+    modalPhotos.forEach((photo, index) => {
+        const url = safeUrl(photo.thumb || photo.url);
         if (!url) return;
         items.push(`
             <span class="photo-item">
                 <img src="${escapeHtml(url)}" alt="">
+                <span class="photo-move">
+                    <button type="button" data-move="-1" data-index="${index}"
+                            aria-label="${escapeHtml(t("modal.photoLeft"))}">&#9664;</button>
+                    <button type="button" data-move="1" data-index="${index}"
+                            aria-label="${escapeHtml(t("modal.photoRight"))}">&#9654;</button>
+                </span>
                 <button type="button" class="photo-remove"
                         aria-label="${escapeHtml(t("modal.photoDelete"))}"
                         data-remove-photo="${photo.id}">&times;</button>
@@ -1633,8 +1645,38 @@ $("#p-photos").addEventListener("change", async event => {
 });
 
 $("#p-photos-grid").addEventListener("click", async event => {
+    const moveButton = event.target.closest("[data-move]");
     const removeButton = event.target.closest("[data-remove-photo]");
     const removePending = event.target.closest("[data-remove-pending]");
+
+    if (moveButton) {
+        const delta = Number(moveButton.getAttribute("data-move"));
+        const index = Number(moveButton.getAttribute("data-index"));
+        const target = index + delta;
+        if (!Number.isInteger(target) || target < 0
+            || target >= modalPhotos.length) return;
+
+        const tmp = modalPhotos[index];
+        modalPhotos[index] = modalPhotos[target];
+        modalPhotos[target] = tmp;
+        renderPhotosGrid();
+
+        const ids = modalPhotos.map(photo => photo.id);
+        if (ids.every(Boolean)) {
+            try {
+                const response = await api(
+                    "/api/admin/projects/" + $("#p-id").value + "/photos/",
+                    { method: "PUT", body: { order: ids } }
+                );
+                if (response.photos) modalPhotos = response.photos;
+                renderPhotosGrid();
+                toast(t("modal.photoReordered"), "ok");
+            } catch (error) {
+                showError("#project-error", error.message);
+            }
+        }
+        return;
+    }
 
     if (removeButton) {
         const photoId = removeButton.getAttribute("data-remove-photo");
