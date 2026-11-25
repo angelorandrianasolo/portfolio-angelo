@@ -76,6 +76,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+# Par defaut : SQLite (developpement local, tests). En production, la
+# variable DATABASE_URL bascule sur PostgreSQL (Neon) sans autre changement :
+# memes modeles, meme logique, seul le moteur change.
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -85,6 +88,27 @@ DATABASES = {
         ),
     }
 }
+
+_db_url = os.environ.get("DATABASE_URL", "").strip()
+if _db_url:
+    from urllib.parse import parse_qs, unquote, urlparse
+
+    _u = urlparse(_db_url)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": unquote(_u.path.lstrip("/")),
+            "USER": unquote(_u.username or ""),
+            "PASSWORD": unquote(_u.password or ""),
+            "HOST": _u.hostname or "",
+            "PORT": str(_u.port or "5432"),
+            # Connexion maintenue ouverte : Neon met la base en veille, une
+            # nouvelle connexion par requete ajouterait ~1 s au premier appel.
+            "CONN_MAX_AGE": 60,
+            # Options de la cle d'URL (sslmode=require pour Neon).
+            "OPTIONS": {k: v[0] for k, v in parse_qs(_u.query).items()},
+        }
+    }
 
 # ---------------------------------------------------------------------------
 # Internationalisation
@@ -104,6 +128,26 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = Path(
     os.environ.get("DJANGO_MEDIA_ROOT", str(BASE_DIR / "media"))
 )
+
+# ---------------------------------------------------------------------------
+# Stockage des medias : en base (production cloud) ou disque local
+# ---------------------------------------------------------------------------
+# MEDIA_BACKEND=db : les fichiers sont ecrits dans la table core_fileblob
+# (PostgreSQL/Neon) au lieu du disque. Le disque des plans gratuits est
+# ephemere : un rede ploiement effacerait /app/media. La base est
+# persistante et sauvegardee : rien ne peut se perdre, sans service
+# externe ni carte bancaire. URLs /media/... identiques de part et d'autre.
+# Sans la variable (developpement, tests) : disque local, inchange.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+MEDIA_BACKEND = os.environ.get("MEDIA_BACKEND", "").strip().lower()
+if MEDIA_BACKEND == "db":
+    STORAGES["default"] = {"BACKEND": "core.storage.DatabaseStorage"}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

@@ -251,3 +251,30 @@ class ContactMessage(models.Model):
             "email_sent": self.email_sent,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
+
+
+class FileBlob(models.Model):
+    """Contenu binaire d'un fichier media (voir core.storage.DatabaseStorage).
+
+    Une ligne = un fichier (photo, miniature, CV). `name` est exactement la
+    valeur du champ ImageField/FieldFile (chemin relatif type
+    ``projects/xxx.jpg``) : l'aller-retour disque <-> base reste transparent
+    et les URLs /media/... ne changent pas.
+
+    Pourquoi la base : le disque des plans gratuits est ephemere (un rede-
+    ploiement effacerait /app/media). PostgreSQL (Neon) est persistant et
+    sauvegarde : les medias ne peuvent plus se perdre, sans service externe
+    ni carte bancaire.
+    """
+
+    name = models.CharField("Chemin", max_length=500, unique=True)
+    content = models.BinaryField("Contenu")
+    size = models.PositiveIntegerField("Taille (octets)", default=0)
+    updated_at = models.DateTimeField("Mis a jour", auto_now=True)
+
+    class Meta:
+        verbose_name = "Fichier media"
+        verbose_name_plural = "Fichiers medias"
+
+    def __str__(self):
+        return f"{self.name} ({self.size} octets)"
