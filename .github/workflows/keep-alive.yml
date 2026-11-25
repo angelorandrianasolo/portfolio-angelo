@@ -1,0 +1,29 @@
+# Keep-alive : une visite toutes les 5 minutes evite la veille
+# automatique du plan gratuit Render (~40 s de demarrage a chaque
+# premiere visite) et maintient chaud Neon (veille apres 5 min).
+# Aucun compte supplementaire (Actions est gratuit sur depot public).
+# workflow_dispatch = bouton "Run workflow" manuel.
+name: Keep-alive
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      # Demarrage a froid : on reessaie jusqu'a ~6 min avant d'echouer.
+      - name: Reveiller l'API (Render)
+        run: |
+          for i in $(seq 1 12); do
+            if curl -fsS --max-time 20 https://portfolio-api.onrender.com/health; then
+              echo "API en ligne."
+              exit 0
+            fi
+            echo "Tentative $i : instance en veille ou en demarrage..."
+            sleep 30
+          done
+          echo "API injoignable apres 12 tentatives."
+          exit 1
