@@ -18,7 +18,7 @@ jobs:
       - name: Reveiller l'API (Render)
         run: |
           for i in $(seq 1 12); do
-            if curl -fsS --max-time 20 https://portfolio-api.onrender.com/health; then
+            if curl -fsS --max-time 20 https://portfolio-api-cg44.onrender.com/health; then
               echo "API en ligne."
               exit 0
             fi
