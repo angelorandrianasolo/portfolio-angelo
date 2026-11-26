@@ -8,6 +8,10 @@
       "destination": "https://portfolio-api-cg44.onrender.com/api/:path*"
     },
     {
+      "source": "/api/:path(.*)",
+      "destination": "https://portfolio-api-cg44.onrender.com/api/:path*"
+    },
+    {
       "source": "/api",
       "destination": "https://portfolio-api-cg44.onrender.com/api"
     },
@@ -16,7 +20,15 @@
       "destination": "https://portfolio-api-cg44.onrender.com/media/:path*"
     },
     {
+      "source": "/media/:path(.*)",
+      "destination": "https://portfolio-api-cg44.onrender.com/media/:path*"
+    },
+    {
       "source": "/health",
+      "destination": "https://portfolio-api-cg44.onrender.com/health"
+    },
+    {
+      "source": "/health/",
       "destination": "https://portfolio-api-cg44.onrender.com/health"
     }
   ],
