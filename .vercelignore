@@ -1,0 +1,4 @@
+# Vercel interprete api/ comme son dossier de fonctions serverless et
+# intercepte /api/* avant les rewrites : on l'exclut du deploiement.
+# Le back Django est construit et servi par Render (Docker), pas par Vercel.
+api
