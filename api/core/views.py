@@ -4,6 +4,7 @@ API REST du portfolio.
 Public  : bootstrap, projets, visites, telechargements de CV, GitHub.
 Back-office (authentifie) : statistiques, CRUD des projets, photo et CV.
 """
+import ipaddress
 import json
 import logging
 import os
@@ -104,18 +105,35 @@ def anonymize_ip(ip: str | None) -> str | None:
     """IP stockee : derniers octets retires (RGPD — donnee personnelle).
 
     L'IP reste partiellement visible pour comprendre l'origine d'un message
-    (« IP : 172.18.x.x ») et continue de servir de cle de plafonnement, mais
+    (« IP : 172.18.0.0 ») et continue de servir de cle de plafonnement, mais
     elle ne permet plus d'identifier une machine precise.
+
+    La valeur renvoyee doit rester une IP syntaxiquement valide : ces colonnes
+    sont de type `inet` dans PostgreSQL, qui rejette tout autre texte
+    (une forme « 41.210.x.x » faisait echouer l'ecriture en HTTP 500).
     """
     if not ip:
         return ip
-    if ":" in ip:  # IPv6 : on garde le prefixe reseau (3 blocs)
-        groups = [g for g in ip.split(":") if g][:3]
-        return ":".join(groups) + "::" if groups else None
-    parts = ip.split(".")
-    if len(parts) == 4 and all(p.isdigit() for p in parts):
-        return f"{parts[0]}.{parts[1]}.x.x"
-    return ip
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        # En-tete client illisible : on n'enregistre rien plutot que de
+        # casser l'ecriture en base avec une chaine arbitraire.
+        return None
+    if addr.version == 4:
+        # Les deux derniers octets sont ecrases (41.210.0.0).
+        return f"{addr.packed[0]}.{addr.packed[1]}.0.0"
+    # IPv6 : on garde le prefixe reseau (3 blocs).
+    groups = [g for g in str(addr).split(":") if g][:3]
+    if not groups:
+        return None
+    candidate = ":".join(groups) + "::"
+    try:
+        ipaddress.ip_address(candidate)
+    except ValueError:
+        # Cas limite (adresse IPv4 embarquee) : on n'enregistre rien.
+        return None
+    return candidate
 
 
 def bad_request(message: str, status: int = 400) -> JsonResponse:
@@ -401,8 +419,17 @@ def cv_download(request):
     if request.session.get("cv_tracked"):
         return JsonResponse({"tracked": False}, status=202)
 
+    # L'en-tete vient du client : on ne stocke qu'une adresse valide
+    # (colonne `inet`), sinon l'ecriture echouerait en HTTP 500.
+    raw_ip = client_ip(request)
+    if raw_ip:
+        try:
+            ipaddress.ip_address(raw_ip)
+        except ValueError:
+            raw_ip = None
+
     CvDownload.objects.create(
-        ip=client_ip(request),
+        ip=raw_ip,
         user_agent=request.META.get("HTTP_USER_AGENT", "")[:1000],
     )
     request.session["cv_tracked"] = True
