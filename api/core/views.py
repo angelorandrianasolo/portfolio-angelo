@@ -1110,7 +1110,9 @@ def _forward_email(name: str, email: str, subject: str, body: str) -> bool:
         headers={
             "Content-Type": "application/x-www-form-urlencoded",
             "Accept": "application/json",
-            "User-Agent": "PortfolioContact/1.0",
+            # Le relais rejette les agents non-navigateurs.
+            "User-Agent": "Mozilla/5.0",
+            "Referer": "https://portfolio-angelo-sage.vercel.app/",
         },
         method="POST",
     )
