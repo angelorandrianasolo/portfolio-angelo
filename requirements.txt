@@ -1,6 +1,6 @@
 Django>=6.0
 Pillow>=10.0
-gunicorn>=22.0
+gunicorn>=27.0.1
 # Empreinte TLS navigateur pour le relais HTTPS du formulaire de contact
 # (Cloudflare rejette les requetes Python standard).
 curl_cffi>=0.10.0
