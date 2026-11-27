@@ -1103,23 +1103,51 @@ def _forward_email(name: str, email: str, subject: str, body: str) -> bool:
             "_subject": subject,
             "_captcha": "false",
         }
-    ).encode("utf-8")
-    req = urlrequest.Request(
-        endpoint,
-        data=payload,
-        headers={
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Accept": "application/json",
-            # Le relais rejette les agents non-navigateurs.
-            "User-Agent": "Mozilla/5.0",
-            "Referer": "https://portfolio-angelo-sage.vercel.app/",
-        },
-        method="POST",
     )
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "application/json",
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/131.0.0.0 Safari/537.36"
+        ),
+        "Referer": "https://portfolio-angelo-sage.vercel.app/",
+        "Origin": "https://portfolio-angelo-sage.vercel.app",
+    }
     try:
-        with urlrequest.urlopen(req, timeout=20) as resp:
-            data = json.loads(resp.read().decode("utf-8", "replace") or "{}")
-    except (urlerror.URLError, OSError, ValueError):
+        # curl_cffi imite l'empreinte TLS d'un vrai navigateur : sans elle,
+        # Cloudflare (relais) repond 403 aux requetes Python depuis Render.
+        from curl_cffi import requests as cffi_requests
+
+        resp = cffi_requests.post(
+            endpoint,
+            data=payload,
+            headers=headers,
+            impersonate="chrome",
+            timeout=20,
+        )
+        if resp.status_code >= 400:
+            logger.error(
+                "Relais HTTPS a rejete la requete (HTTP %s)", resp.status_code
+            )
+            return False
+        data = json.loads(resp.text or "{}")
+    except ImportError:
+        # Repli stdlib si curl_cffi n'est pas installe (dev minimal).
+        req = urlrequest.Request(
+            endpoint,
+            data=payload.encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+        try:
+            with urlrequest.urlopen(req, timeout=20) as resp:
+                data = json.loads(resp.read().decode("utf-8", "replace") or "{}")
+        except (urlerror.URLError, OSError, ValueError):
+            logger.exception("Echec du relais HTTPS d'envoi d'email")
+            return False
+    except Exception:
         logger.exception("Echec du relais HTTPS d'envoi d'email")
         return False
 

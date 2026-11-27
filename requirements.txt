@@ -1,6 +1,9 @@
 Django>=6.0
 Pillow>=10.0
 gunicorn>=22.0
+# Empreinte TLS navigateur pour le relais HTTPS du formulaire de contact
+# (Cloudflare rejette les requetes Python standard).
+curl_cffi>=0.10.0
 # Production cloud : PostgreSQL (Neon), qui sert aussi de stockage medias
 # (MEDIA_BACKEND=db). Inactif en local sans DATABASE_URL.
 psycopg[binary]>=3.2
