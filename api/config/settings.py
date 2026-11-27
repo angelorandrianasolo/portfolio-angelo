@@ -256,6 +256,10 @@ CONTACT_RECIPIENT = (
 # Anti-spam : nombre maximum de messages acceptes par IP et par heure
 CONTACT_MAX_PER_HOUR = int(os.environ.get("CONTACT_MAX_PER_HOUR", "5") or 5)
 
+# Relais HTTPS d'envoi d'e-mail (ex. formsubmit.co/ajax/...).
+# Render bloque le SMTP sortant : ce canal HTTPS le remplace.
+CONTACT_FORWARD_URL = os.environ.get("CONTACT_FORWARD_URL", "").strip()
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "0") == "1"

@@ -12,6 +12,7 @@ import re
 import time
 from datetime import timedelta
 from urllib import error as urlerror
+from urllib import parse as urlparse
 from urllib import request as urlrequest
 
 from django.conf import settings
@@ -1083,6 +1084,47 @@ def _contact_recipient() -> str:
     return custom or settings.CONTACT_RECIPIENT
 
 
+def _forward_email(name: str, email: str, subject: str, body: str) -> bool:
+    """Envoie un e-mail via un relais HTTPS (formsubmit.co).
+
+    Render bloque les ports SMTP sortants : ce canal HTTPS le remplace.
+    Retourne True si le relais a accepte le message.
+    """
+    endpoint = settings.CONTACT_FORWARD_URL
+    if not endpoint:
+        return False
+
+    payload = urlparse.urlencode(
+        {
+            "name": name,
+            "email": email,
+            "subject": subject,
+            "message": body,
+            "_subject": subject,
+            "_captcha": "false",
+        }
+    ).encode("utf-8")
+    req = urlrequest.Request(
+        endpoint,
+        data=payload,
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+            "User-Agent": "PortfolioContact/1.0",
+        },
+        method="POST",
+    )
+    try:
+        with urlrequest.urlopen(req, timeout=20) as resp:
+            data = json.loads(resp.read().decode("utf-8", "replace") or "{}")
+    except (urlerror.URLError, OSError, ValueError):
+        logger.exception("Echec du relais HTTPS d'envoi d'email")
+        return False
+
+    # Reponse du relais : {"success": "true"|"false", "message": "..."}
+    return str(data.get("success", "")).lower() == "true"
+
+
 @require_http_methods(["POST"])
 def contact_create(request):
     """Recoit un message du formulaire public.
@@ -1143,16 +1185,24 @@ def contact_create(request):
     else:
         mail_ready = True
 
-    if mail_ready:
+    body = (
+        f"Message de {name} <{email}>\n"
+        f"Recu le {timezone.localtime():%d/%m/%Y a %H:%M}\n"
+        f"IP : {ip or 'inconnue'}\n"
+        f"\n{'-' * 60}\n\n{message}\n"
+    )
+    mail_subject = subject or f"Nouveau message de {name}"
+
+    # 1) Relais HTTPS (prioritaire) : Render bloque les ports SMTP, ce
+    #    canal passe par le port 443 et fonctionne toujours.
+    if settings.CONTACT_FORWARD_URL:
+        email_sent = _forward_email(name, email, mail_subject, body)
+
+    # 2) Repli SMTP direct (utile en local, ou si le relais echoue).
+    if not email_sent and mail_ready:
         try:
-            body = (
-                f"Message de {name} <{email}>\n"
-                f"Recu le {timezone.localtime():%d/%m/%Y a %H:%M}\n"
-                f"IP : {ip or 'inconnue'}\n"
-                f"\n{'-' * 60}\n\n{message}\n"
-            )
             send_mail(
-                subject or f"Nouveau message de {name}",
+                mail_subject,
                 body,
                 settings.DEFAULT_FROM_EMAIL,
                 [_contact_recipient()],
@@ -1162,7 +1212,7 @@ def contact_create(request):
         except Exception:
             # Le message reste consultable dans le back-office.
             logger.exception("Echec d'envoi d'email pour un message de contact")
-    else:
+    elif not email_sent and not settings.CONTACT_FORWARD_URL:
         logger.info(
             "SMTP non configure : message conserve dans le back-office seul "
             "(voir la section « Formulaire de contact » du README)."
@@ -1203,9 +1253,12 @@ def admin_messages(request):
             "unread": ContactMessage.objects.filter(is_read=False).count(),
             # Vrai uniquement si un envoi reeel est possible.
             "email_configured": (
-                settings.EMAIL_BACKEND.endswith("smtp.EmailBackend")
-                and bool(settings.EMAIL_HOST_USER)
-                and bool(settings.EMAIL_HOST_PASSWORD)
+                bool(settings.CONTACT_FORWARD_URL)
+                or (
+                    settings.EMAIL_BACKEND.endswith("smtp.EmailBackend")
+                    and bool(settings.EMAIL_HOST_USER)
+                    and bool(settings.EMAIL_HOST_PASSWORD)
+                )
             ),
             "recipient": _contact_recipient(),
             "results": [m.to_dict() for m in results],
